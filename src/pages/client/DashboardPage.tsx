@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export const DashboardPage = () => {
+function DashboardPage () {
   return (
     <div className="space-y-6">
       <Breadcrumbs items={[{ label: 'Мои заявки' }]} />
@@ -61,3 +61,4 @@ export const DashboardPage = () => {
     </div>
   );
 };
+export default DashboardPage;

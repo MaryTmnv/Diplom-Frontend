@@ -1,13 +1,38 @@
+// src/app/router.tsx
+import { lazy, Suspense } from 'react';
+import { createBrowserRouter } from 'react-router-dom';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { 
+  MainLayout, 
+  ClientLayout, 
+  OperatorLayout, 
+  ManagerLayout 
+} from '@/shared/components/Layout';
 
-import { DashboardPage } from "@/pages/client/DashboardPage";
-import { AnalyticsDashboard } from "@/pages/manager";
-import { QueuePage } from "@/pages/operator";
-import { EmptyState } from "@/shared/components/EmptyState";
-import { MainLayout, ClientLayout, OperatorLayout, ManagerLayout } from "@/shared/components/Layout";
-import { createBrowserRouter } from "react-router-dom";
+// Lazy loading страниц
+const DashboardPage = lazy(() => import('@/pages/client/DashboardPage'));
+
+const QueuePage = lazy(() => import('@/pages/operator/QueuePage'));
 
 
-// Временная главная страница
+const AnalyticsDashboard = lazy(() => import('@/pages/manager/AnalyticsDashboard'));
+
+
+// Fallback компонент
+const PageLoader = () => (
+  <div className="min-h-[calc(100vh-16rem)] flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+  </div>
+);
+
+// Обёртка для Suspense
+const withSuspense = (Component: React.LazyExoticComponent<any>) => (
+  <Suspense fallback={<PageLoader />}>
+    <Component />
+  </Suspense>
+);
+
+// Временная главная страница (не lazy, т.к. маленькая)
 const HomePage = () => {
   return (
     <div className="min-h-[calc(100vh-16rem)] flex items-center justify-center">
@@ -60,17 +85,9 @@ export const router = createBrowserRouter([
     children: [
       {
         path: 'dashboard',
-        element: <DashboardPage />,
+        element: withSuspense(DashboardPage),
       },
-      {
-        path: 'tickets/create',
-        element: (
-          <div>
-            <h1 className="text-3xl font-bold mb-4">Создать заявку</h1>
-            <p className="text-gray-600">Форма создания заявки...</p>
-          </div>
-        ),
-      },
+    
     ],
   },
 
@@ -81,26 +98,9 @@ export const router = createBrowserRouter([
     children: [
       {
         path: 'queue',
-        element: <QueuePage />,
+        element: withSuspense(QueuePage),
       },
-      {
-        path: 'my-tickets',
-        element: (
-          <div>
-            <h1 className="text-3xl font-bold mb-4">Мои заявки</h1>
-            <p className="text-gray-600">Список моих заявок...</p>
-          </div>
-        ),
-      },
-      {
-        path: 'templates',
-        element: (
-          <div>
-            <h1 className="text-3xl font-bold mb-4">Шаблоны ответов</h1>
-            <p className="text-gray-600">Библиотека шаблонов...</p>
-          </div>
-        ),
-      },
+      
     ],
   },
 
@@ -111,26 +111,9 @@ export const router = createBrowserRouter([
     children: [
       {
         path: 'analytics',
-        element: <AnalyticsDashboard />,
+        element: withSuspense(AnalyticsDashboard),
       },
-      {
-        path: 'team',
-        element: (
-          <div>
-            <h1 className="text-3xl font-bold mb-4">Команда</h1>
-            <p className="text-gray-600">Производительность команды...</p>
-          </div>
-        ),
-      },
-      {
-        path: 'reports',
-        element: (
-          <div>
-            <h1 className="text-3xl font-bold mb-4">Отчёты</h1>
-            <p className="text-gray-600">Генерация отчётов...</p>
-          </div>
-        ),
-      },
+      
     ],
   },
 

@@ -2,7 +2,7 @@ import { Breadcrumbs } from "@/shared/components/Navigation";
 import { Card, CardHeader, CardDescription, CardContent, CardTitle } from "@/shared/ui";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
-export const AnalyticsDashboard = () => {
+function AnalyticsDashboard () {
   return (
     <div className="space-y-6">
       <Breadcrumbs items={[{ label: 'Аналитика' }]} />
@@ -73,3 +73,5 @@ export const AnalyticsDashboard = () => {
     </div>
   );
 };
+
+export default AnalyticsDashboard;

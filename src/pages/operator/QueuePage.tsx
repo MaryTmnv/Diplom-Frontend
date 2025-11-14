@@ -2,7 +2,7 @@ import { Breadcrumbs } from "@/shared/components/Navigation";
 import { Card, CardHeader, CardDescription, CardTitle, CardContent } from "@/shared/ui";
 
 
-export const QueuePage = () => {
+function QueuePage() {
   return (
     <div className="space-y-6">
       <Breadcrumbs items={[{ label: 'Очередь заявок' }]} />
@@ -55,3 +55,4 @@ export const QueuePage = () => {
     </div>
   );
 };
+export default QueuePage;
