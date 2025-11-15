@@ -1,15 +1,23 @@
-export const UserRole = {
-  CLIENT: 'client',
-  OPERATOR: 'operator',
-  SPECIALIST: 'specialist',
-  MANAGER: 'manager',
-} as const;
+export enum UserRole {
+  CLIENT = 'CLIENT',           
+  OPERATOR = 'OPERATOR',
+  SPECIALIST = 'SPECIALIST',
+  MANAGER = 'MANAGER',
+  ADMIN = 'ADMIN',            
+}
 
-export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+export interface ClientProfile {
+  id: string;
+  isVip: boolean;
+  totalTickets: number;
+  resolvedTickets: number;
+}
 
-// Теперь можно использовать:
-// UserRole.CLIENT -> 'client'
-// type UserRole -> 'client' | 'operator' | 'specialist' | 'manager'
+export interface OperatorStats {
+  totalResolved: number;
+  averageResolutionTime: number;  // в минутах
+  averageRating: number;          // 0-5
+}
 
 export interface User {
   id: string;
@@ -18,13 +26,12 @@ export interface User {
   lastName: string;
   phone?: string;
   role: UserRole;
-  avatar?: string;
+  avatar?: string | null;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface UserProfile extends User {
-  ticketsCount?: number;
-  resolvedCount?: number;
-  rating?: number;
+  
+  // Профили (опционально, зависит от роли)
+  clientProfile?: ClientProfile;
+  operatorStats?: OperatorStats;
 }

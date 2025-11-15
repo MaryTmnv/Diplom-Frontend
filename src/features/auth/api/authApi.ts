@@ -15,12 +15,14 @@ export const authApi = {
 
   // Регистрация
   register: async (data: RegisterDto): Promise<AuthResponse> => {
-    return api.post<AuthResponse>('/auth/register', data);
+    // Убираем confirmPassword перед отправкой
+    const { confirmPassword, ...registerData } = data as any;
+    return api.post<AuthResponse>('/auth/register', registerData);
   },
 
   // Выход
-  logout: async (): Promise<void> => {
-    return api.post<void>('/auth/logout');
+  logout: async (refreshToken: string): Promise<void> => {
+    return api.post<void>('/auth/logout', { refreshToken });
   },
 
   // Обновление токена
@@ -41,10 +43,5 @@ export const authApi = {
   // Сброс пароля
   resetPassword: async (token: string, password: string): Promise<void> => {
     return api.post<void>('/auth/reset-password', { token, password });
-  },
-
-  // Проверка email (существует ли)
-  checkEmail: async (email: string): Promise<{ exists: boolean }> => {
-    return api.post<{ exists: boolean }>('/auth/check-email', { email });
   },
 };

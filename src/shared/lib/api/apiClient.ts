@@ -2,10 +2,11 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { env } from '@/shared/config/env';
 
-// Типы для ответов API
+// Тип для ответа refresh
 interface RefreshTokenResponse {
-  token: string;
-  refreshToken?: string;
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
 }
 
 // Создаём базовый axios instance
@@ -22,27 +23,29 @@ apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token');
     
-    if (token) {
-      config.headers = config.headers || {};
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
 // Response interceptor - обработка ошибок
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  async (error: any) => {
     const originalRequest = error.config;
 
     // Обработка 401 - неавторизован
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest?._retry) {
       originalRequest._retry = true;
 
       try {
+        // Попытка обновить токен
         const refreshToken = localStorage.getItem('refresh_token');
         
         if (!refreshToken) {
@@ -54,14 +57,18 @@ apiClient.interceptors.response.use(
           { refreshToken }
         );
 
-        const { token } = response.data;
-        localStorage.setItem('auth_token', token);
+        const { accessToken, refreshToken: newRefreshToken } = response.data;
+        localStorage.setItem('auth_token', accessToken);
+        localStorage.setItem('refresh_token', newRefreshToken);
 
-        originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers.Authorization = `Bearer ${token}`;
+        // Повторяем оригинальный запрос с новым токеном
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        }
         
         return apiClient(originalRequest);
       } catch (refreshError) {
+        // Если не удалось обновить токен - разлогиниваем
         localStorage.removeItem('auth_token');
         localStorage.removeItem('refresh_token');
         window.location.href = '/auth/login';
@@ -69,9 +76,10 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Показываем ошибку
+    // Обработка других ошибок
     const errorMessage = error.response?.data?.message || 'Произошла ошибка';
-    
+
+    // Показываем toast только для не-401 ошибок
     if (error.response?.status !== 401) {
       toast.error(errorMessage);
     }

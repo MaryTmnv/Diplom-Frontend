@@ -7,20 +7,20 @@ export const useAuthStore = create<AuthStore>()(
     (set) => ({
       // State
       user: null,
-      token: null,
+      accessToken: null,        // ← изменено
       refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
 
       // Actions
-      setAuth: ({ user, token, refreshToken }) => {
+      setAuth: ({ user, accessToken, refreshToken }) => {  // ← изменено
         // Сохраняем токены в localStorage
-        localStorage.setItem('auth_token', token);
+        localStorage.setItem('auth_token', accessToken);
         localStorage.setItem('refresh_token', refreshToken);
 
         set({
           user,
-          token,
+          accessToken,           // ← изменено
           refreshToken,
           isAuthenticated: true,
           isLoading: false,
@@ -31,9 +31,9 @@ export const useAuthStore = create<AuthStore>()(
         set({ user });
       },
 
-      setToken: (token) => {
-        localStorage.setItem('auth_token', token);
-        set({ token });
+      setAccessToken: (accessToken) => {  // ← изменено
+        localStorage.setItem('auth_token', accessToken);
+        set({ accessToken });
       },
 
       logout: () => {
@@ -43,7 +43,7 @@ export const useAuthStore = create<AuthStore>()(
 
         set({
           user: null,
-          token: null,
+          accessToken: null,     // ← изменено
           refreshToken: null,
           isAuthenticated: false,
           isLoading: false,
@@ -56,7 +56,7 @@ export const useAuthStore = create<AuthStore>()(
         
         set({
           user: null,
-          token: null,
+          accessToken: null,     // ← изменено
           refreshToken: null,
           isAuthenticated: false,
           isLoading: false,

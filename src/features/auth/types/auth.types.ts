@@ -5,7 +5,6 @@ import { User, UserRole } from '@/shared/types/user.types';
 export interface LoginDto {
   email: string;
   password: string;
-  rememberMe?: boolean;
 }
 
 export interface RegisterDto {
@@ -14,7 +13,6 @@ export interface RegisterDto {
   email: string;
   phone: string;
   password: string;
-  confirmPassword: string;
 }
 
 export interface ForgotPasswordDto {
@@ -24,27 +22,28 @@ export interface ForgotPasswordDto {
 export interface ResetPasswordDto {
   token: string;
   password: string;
-  confirmPassword: string;
 }
 
-// ========== Responses ==========
+// ========== Responses (по документации бэкенда) ==========
 
 export interface AuthResponse {
   user: User;
-  token: string;
+  accessToken: string;      // ← изменено с "token"
   refreshToken: string;
+  expiresIn: number;        // ← добавлено
 }
 
 export interface TokenResponse {
-  token: string;
+  accessToken: string;      // ← изменено с "token"
   refreshToken: string;
+  expiresIn: number;        // ← добавлено
 }
 
 // ========== Store State ==========
 
 export interface AuthState {
   user: User | null;
-  token: string | null;
+  accessToken: string | null;     // ← изменено
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -53,7 +52,7 @@ export interface AuthState {
 export interface AuthActions {
   setAuth: (data: AuthResponse) => void;
   setUser: (user: User) => void;
-  setToken: (token: string) => void;
+  setAccessToken: (token: string) => void;  // ← изменено
   logout: () => void;
   clearAuth: () => void;
 }

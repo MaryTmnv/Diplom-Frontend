@@ -1,10 +1,38 @@
-import { Breadcrumbs } from '@/shared/components/Navigation';
-import { Button } from '@/shared/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/Card';
+import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
+import { TicketList } from '@/features/tickets/components/TicketList';
+import { useTickets } from '@/features/tickets/hooks/useTickets';
+import { TicketStatus } from '@/features/tickets/types/tickets.types';
+import { Breadcrumbs } from '@/shared/components/Navigation';
+import { Button, Card, CardHeader, CardDescription, CardTitle, CardContent } from '@/shared/ui';
 
-function DashboardPage () {
+export const DashboardPage = () => {
+  const navigate = useNavigate();
+  
+  // Загружаем все заявки
+  const { data: ticketsResponse, isLoading } = useTickets();
+
+  // Вычисляем статистику
+  const stats = useMemo(() => {
+    const tickets = ticketsResponse?.data || [];
+    
+    return {
+      active: tickets.filter(
+        (t) => t.status === TicketStatus.NEW || t.status === TicketStatus.IN_PROGRESS
+      ).length,
+      resolved: tickets.filter((t) => t.status === TicketStatus.RESOLVED).length,
+      total: tickets.length,
+    };
+  }, [ticketsResponse]);
+
+  // Активные заявки
+  const activeTickets = useMemo(() => {
+    return ticketsResponse?.data.filter(
+      (t) => t.status !== TicketStatus.CLOSED && t.status !== TicketStatus.RESOLVED
+    ) || [];
+  }, [ticketsResponse]);
+
   return (
     <div className="space-y-6">
       <Breadcrumbs items={[{ label: 'Мои заявки' }]} />
@@ -15,12 +43,10 @@ function DashboardPage () {
           <p className="text-gray-600 mt-1">Управление вашими обращениями</p>
         </div>
 
-        <Link to="/client/tickets/create">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Создать заявку
-          </Button>
-        </Link>
+        <Button onClick={() => navigate('/client/tickets/create')}>
+          <Plus className="w-4 h-4 mr-2" />
+          Создать заявку
+        </Button>
       </div>
 
       {/* Статистика */}
@@ -28,37 +54,43 @@ function DashboardPage () {
         <Card>
           <CardHeader>
             <CardDescription>Активные</CardDescription>
-            <CardTitle className="text-3xl">3</CardTitle>
+            <CardTitle className="text-3xl">{stats.active}</CardTitle>
           </CardHeader>
         </Card>
 
         <Card>
           <CardHeader>
             <CardDescription>Решённые</CardDescription>
-            <CardTitle className="text-3xl">12</CardTitle>
+            <CardTitle className="text-3xl">{stats.resolved}</CardTitle>
           </CardHeader>
         </Card>
 
         <Card>
           <CardHeader>
             <CardDescription>Всего</CardDescription>
-            <CardTitle className="text-3xl">15</CardTitle>
+            <CardTitle className="text-3xl">{stats.total}</CardTitle>
           </CardHeader>
         </Card>
       </div>
 
+      {/* Список активных заявок */}
       <Card>
         <CardHeader>
           <CardTitle>Активные заявки</CardTitle>
           <CardDescription>Ваши текущие обращения в поддержку</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-500 text-center py-8">
-            Здесь будет список заявок...
-          </p>
+          <TicketList
+            tickets={activeTickets}
+            isLoading={isLoading}
+            variant="client"
+            emptyMessage="У вас пока нет активных заявок. Создайте первую заявку, чтобы получить помощь."
+            onTicketClick={(ticket) => navigate(`/client/tickets/${ticket.id}`)}
+          />
         </CardContent>
       </Card>
     </div>
   );
 };
+
 export default DashboardPage;

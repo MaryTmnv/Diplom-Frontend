@@ -4,11 +4,10 @@ import toast from 'react-hot-toast';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 
-
 export const useAuth = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { setAuth, logout: logoutStore, user, isAuthenticated } = useAuthStore();
+  const { setAuth, logout: logoutStore, user, isAuthenticated, refreshToken } = useAuthStore();
 
   // Логин
   const loginMutation = useMutation({
@@ -19,10 +18,11 @@ export const useAuth = () => {
       
       // Редирект в зависимости от роли
       const redirectMap = {
-        client: '/client/dashboard',
-        operator: '/operator/queue',
-        specialist: '/operator/queue',
-        manager: '/manager/analytics',
+        CLIENT: '/client/dashboard',
+        OPERATOR: '/operator/queue',
+        SPECIALIST: '/operator/queue',
+        MANAGER: '/manager/analytics',
+        ADMIN: '/manager/analytics',
       };
       
       navigate(redirectMap[data.user.role] || '/');
@@ -49,7 +49,7 @@ export const useAuth = () => {
 
   // Выход
   const logoutMutation = useMutation({
-    mutationFn: authApi.logout,
+    mutationFn: () => authApi.logout(refreshToken || ''),
     onSuccess: () => {
       logoutStore();
       queryClient.clear(); // Очищаем весь кэш

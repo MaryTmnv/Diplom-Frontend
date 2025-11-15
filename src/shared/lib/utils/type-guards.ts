@@ -1,6 +1,6 @@
 
 // Type guards для проверки типов в runtime
-import { TicketCategory, TicketPriority, TicketStatus } from "../../../features/tickets/types/tycket.types";
+import { TicketCategory, TicketPriority, TicketStatus } from "../../../features/tickets/types/tickets.types";
 import { UserRole } from "../../types/user.types";
 
 export const isTicketStatus = (value: unknown): value is TicketStatus => {
