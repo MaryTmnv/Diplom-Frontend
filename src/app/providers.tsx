@@ -1,7 +1,8 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
-import { env } from '../shared/config/env';
+import { useEffect } from 'react';
+import { validateEnv, env } from '../shared/config/env';
 import { queryClient } from '../shared/lib/api/queryClient';
 
 
@@ -10,15 +11,27 @@ interface ProvidersProps {
 }
 
 export const Providers = ({ children }: ProvidersProps) => {
+  // Валидация переменных окружения при монтировании
+  useEffect(() => {
+    try {
+      validateEnv();
+    } catch (error) {
+      console.error('❌ Environment validation failed:', error);
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Основной контент приложения (RouterProvider) */}
+      {/* Основной контент приложения */}
       {children}
       
       {/* Toast уведомления */}
       <Toaster
         position="top-right"
         gutter={8}
+        containerStyle={{
+          top: 80, // Отступ от header
+        }}
         toastOptions={{
           duration: 4000,
           style: {
@@ -28,6 +41,7 @@ export const Providers = ({ children }: ProvidersProps) => {
             padding: '12px 16px',
             borderRadius: '8px',
             fontSize: '14px',
+            fontWeight: 500,
             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
           },
           success: {
@@ -55,10 +69,7 @@ export const Providers = ({ children }: ProvidersProps) => {
       
       {/* React Query DevTools - только в development */}
       {env.isDev && (
-        <ReactQueryDevtools 
-          initialIsOpen={false}
-        
-        />
+        <ReactQueryDevtools initialIsOpen={false} />
       )}
     </QueryClientProvider>
   );
