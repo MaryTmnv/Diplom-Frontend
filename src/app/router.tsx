@@ -1,4 +1,3 @@
-// src/app/router.tsx
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { EmptyState } from '@/shared/components/EmptyState';
@@ -8,48 +7,83 @@ import {
   OperatorLayout, 
   ManagerLayout 
 } from '@/shared/components/Layout';
+import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
+import { UserRole } from '@/shared/types/user.types';
 
-// Lazy loading страниц
+// ========== LAZY LOADING СТРАНИЦ ==========
+
+// Client pages
 const DashboardPage = lazy(() => import('@/pages/client/DashboardPage'));
 
+// Operator pages
 const QueuePage = lazy(() => import('@/pages/operator/QueuePage'));
 
-
+// Manager pages
 const AnalyticsDashboard = lazy(() => import('@/pages/manager/AnalyticsDashboard'));
 
+// Auth pages
+const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then(m => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then(m => ({ default: m.RegisterPage })));
+const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
 
-// Fallback компонент
+// ========== FALLBACK КОМПОНЕНТ ==========
 const PageLoader = () => (
   <div className="min-h-[calc(100vh-16rem)] flex items-center justify-center">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+    <div className="flex flex-col items-center gap-3">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+      <p className="text-sm text-gray-600 font-medium">Загрузка...</p>
+    </div>
   </div>
 );
 
-// Обёртка для Suspense
+// ========== ОБЁРТКА ДЛЯ SUSPENSE ==========
 const withSuspense = (Component: React.LazyExoticComponent<any>) => (
   <Suspense fallback={<PageLoader />}>
     <Component />
   </Suspense>
 );
 
-// Временная главная страница (не lazy, т.к. маленькая)
+// ========== ВРЕМЕННАЯ ГЛАВНАЯ СТРАНИЦА ==========
 const HomePage = () => {
   return (
     <div className="min-h-[calc(100vh-16rem)] flex items-center justify-center">
       <div className="text-center max-w-2xl px-4">
+        <div className="mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl mb-4">
+            <span className="text-white font-bold text-4xl">H</span>
+          </div>
+        </div>
+        
         <h1 className="text-5xl font-bold text-gray-900 mb-4">
           Добро пожаловать в HelpMate
         </h1>
         <p className="text-xl text-gray-600 mb-8">
           Современная система поддержки клиентов банка
         </p>
-        <div className="flex gap-4 justify-center">
+        
+        <div className="flex gap-4 justify-center flex-wrap">
           <a href="/auth/login" className="btn-primary">
             Войти в систему
           </a>
           <a href="/knowledge-base" className="btn-secondary">
             База знаний
           </a>
+        </div>
+
+        {/* Быстрые ссылки для разработки */}
+        <div className="mt-12 pt-8 border-t border-gray-200">
+          <p className="text-sm text-gray-500 mb-3">Быстрый доступ (dev):</p>
+          <div className="flex gap-2 justify-center flex-wrap text-xs">
+            <a href="/client/dashboard" className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
+              👤 Клиент
+            </a>
+            <a href="/operator/queue" className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">
+              🎧 Оператор
+            </a>
+            <a href="/manager/analytics" className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200">
+              📊 Руководитель
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -78,42 +112,136 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // ========== КЛИЕНТСКАЯ ЧАСТЬ ==========
+  // ========== АУТЕНТИФИКАЦИЯ ==========
+  {
+    path: '/auth',
+    children: [
+      {
+        path: 'login',
+        element: withSuspense(LoginPage),
+      },
+      {
+        path: 'register',
+        element: withSuspense(RegisterPage),
+      },
+      {
+        path: 'forgot-password',
+        element: withSuspense(ForgotPasswordPage),
+      },
+    ],
+  },
+
+  // ========== КЛИЕНТСКАЯ ЧАСТЬ (ЗАЩИЩЕНО) ==========
   {
     path: '/client',
-    element: <ClientLayout />,
+    element: <ProtectedRoute roles={[UserRole.CLIENT]} />,
     children: [
       {
-        path: 'dashboard',
-        element: withSuspense(DashboardPage),
+        element: <ClientLayout />,
+        children: [
+          {
+            path: 'dashboard',
+            element: withSuspense(DashboardPage),
+          },
+          {
+            path: 'tickets/create',
+            element: (
+              <div className="space-y-6">
+                <h1 className="text-3xl font-bold">Создать заявку</h1>
+                <p className="text-gray-600">Форма создания заявки (скоро)...</p>
+              </div>
+            ),
+          },
+          {
+            path: 'tickets/:id',
+            element: (
+              <div className="space-y-6">
+                <h1 className="text-3xl font-bold">Детали заявки</h1>
+                <p className="text-gray-600">Детальная информация (скоро)...</p>
+              </div>
+            ),
+          },
+        ],
       },
-    
     ],
   },
 
-  // ========== ИНТЕРФЕЙС ОПЕРАТОРА ==========
+  // ========== ИНТЕРФЕЙС ОПЕРАТОРА (ЗАЩИЩЕНО) ==========
   {
     path: '/operator',
-    element: <OperatorLayout />,
+    element: <ProtectedRoute roles={[UserRole.OPERATOR, UserRole.SPECIALIST]} />,
     children: [
       {
-        path: 'queue',
-        element: withSuspense(QueuePage),
+        element: <OperatorLayout />,
+        children: [
+          {
+            path: 'queue',
+            element: withSuspense(QueuePage),
+          },
+          {
+            path: 'my-tickets',
+            element: (
+              <div className="space-y-6">
+                <h1 className="text-3xl font-bold">Мои заявки</h1>
+                <p className="text-gray-600">Список моих заявок (скоро)...</p>
+              </div>
+            ),
+          },
+          {
+            path: 'tickets/:id',
+            element: (
+              <div className="space-y-6">
+                <h1 className="text-3xl font-bold">Рабочее пространство</h1>
+                <p className="text-gray-600">Работа с заявкой (скоро)...</p>
+              </div>
+            ),
+          },
+          {
+            path: 'templates',
+            element: (
+              <div className="space-y-6">
+                <h1 className="text-3xl font-bold">Шаблоны ответов</h1>
+                <p className="text-gray-600">Библиотека шаблонов (скоро)...</p>
+              </div>
+            ),
+          },
+        ],
       },
-      
     ],
   },
 
-  // ========== ИНТЕРФЕЙС РУКОВОДИТЕЛЯ ==========
+  // ========== ИНТЕРФЕЙС РУКОВОДИТЕЛЯ (ЗАЩИЩЕНО) ==========
   {
     path: '/manager',
-    element: <ManagerLayout />,
+    element: <ProtectedRoute roles={[UserRole.MANAGER]} />,
     children: [
       {
-        path: 'analytics',
-        element: withSuspense(AnalyticsDashboard),
+        element: <ManagerLayout />,
+        children: [
+          {
+            path: 'analytics',
+            element: withSuspense(AnalyticsDashboard),
+          },
+          {
+            path: 'team',
+            element: (
+              <div className="space-y-6">
+                <h1 className="text-3xl font-bold">Команда</h1>
+                <p className="text-gray-600">Производительность команды (скоро)...</p>
+              </div>
+            ),
+          },
+          {
+            path: 'reports',
+            element: (
+              <div className="space-y-6">
+                <h1 className="text-3xl font-bold">Отчёты</h1>
+                <p className="text-gray-600">Генерация отчётов (скоро)...</p>
+              </div>
+            ),
+          },
+        ],
       },
-      
     ],
   },
 
