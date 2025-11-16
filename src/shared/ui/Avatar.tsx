@@ -1,42 +1,59 @@
-
+import { forwardRef, ImgHTMLAttributes, HTMLAttributes } from 'react';
 import { cn } from '@/shared/lib/utils/cn';
-import { HTMLAttributes, forwardRef } from 'react';
 
-interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
-  src?: string;
-  alt?: string;
-  fallback?: string;
-  size?: 'sm' | 'md' | 'lg';
-}
+export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {}
 
 export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
-  ({ src, alt, fallback, size = 'md', className, ...props }, ref) => {
-    const sizes = {
-      sm: 'w-8 h-8 text-xs',
-      md: 'w-10 h-10 text-sm',
-      lg: 'w-12 h-12 text-base',
-    };
-
+  ({ className, ...props }, ref) => {
     return (
       <div
         ref={ref}
         className={cn(
-          'relative inline-flex items-center justify-center rounded-full overflow-hidden bg-gray-200',
-          sizes[size],
+          'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full',
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
+Avatar.displayName = 'Avatar';
+
+export interface AvatarImageProps extends ImgHTMLAttributes<HTMLImageElement> {}
+
+export const AvatarImage = forwardRef<HTMLImageElement, AvatarImageProps>(
+  ({ className, src, alt, ...props }, ref) => {
+    if (!src) return null;
+
+    return (
+      <img
+        ref={ref}
+        src={src}
+        alt={alt}
+        className={cn('aspect-square h-full w-full object-cover', className)}
+        {...props}
+      />
+    );
+  }
+);
+AvatarImage.displayName = 'AvatarImage';
+
+export interface AvatarFallbackProps extends HTMLAttributes<HTMLDivElement> {}
+
+export const AvatarFallback = forwardRef<HTMLDivElement, AvatarFallbackProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'flex h-full w-full items-center justify-center rounded-full bg-gray-200 text-gray-700 font-medium text-sm',
           className
         )}
         {...props}
       >
-        {src ? (
-          <img src={src} alt={alt} className="w-full h-full object-cover" />
-        ) : (
-          <span className="font-semibold text-gray-600">
-            {fallback || '?'}
-          </span>
-        )}
+        {children}
       </div>
     );
   }
 );
-
-Avatar.displayName = 'Avatar';
+AvatarFallback.displayName = 'AvatarFallback';

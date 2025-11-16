@@ -1,7 +1,7 @@
 import { RegisterForm } from '@/features/auth/components/RegisterForm';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/shared/ui';
 
-export const RegisterPage = () => {
+function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
       <Card className="w-full max-w-md">
@@ -21,3 +21,5 @@ export const RegisterPage = () => {
     </div>
   );
 };
+
+export default RegisterPage;

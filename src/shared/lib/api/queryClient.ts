@@ -39,12 +39,21 @@ export const queryKeys = {
     list: (filters?: unknown) => ['tickets', 'list', filters] as const,
     detail: (id: string) => ['tickets', 'detail', id] as const,
     history: (id: string) => ['tickets', 'history', id] as const,
+    queue: ['tickets', 'queue'] as const,  // ← добавили
+    myActive: ['tickets', 'my-active'] as const,  // ← добавили
   },
 
   // Messages
   messages: {
     all: ['messages'] as const,
     list: (ticketId: string) => ['messages', 'list', ticketId] as const,
+  },
+
+  // Notifications - ДОБАВЛЕНО
+  notifications: {
+    all: ['notifications'] as const,
+    list: (filters?: unknown) => ['notifications', 'list', filters] as const,
+    unreadCount: ['notifications', 'unread-count'] as const,
   },
 
   // Articles

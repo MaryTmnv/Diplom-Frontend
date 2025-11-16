@@ -10,21 +10,26 @@ import {
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import { UserRole } from '@/shared/types/user.types';
 
-// ========== LAZY LOADING СТРАНИЦ ==========
 
+
+// ========== LAZY LOADING СТРАНИЦ ========== 
 // Client pages
 const DashboardPage = lazy(() => import('@/pages/client/DashboardPage'));
+const CreateTicketPage = lazy(() => import('@/pages/client/CreateTicketPage'));  // ← lazy
+const TicketDetailPage = lazy(() => import('@/pages/client/TicketDetailPage'));  // ← lazy
 
 // Operator pages
 const QueuePage = lazy(() => import('@/pages/operator/QueuePage'));
-
+const MyTicketsPage = lazy(() => import('@/pages/operator/MyTicketsPage'));  // ← добавили
+const TicketWorkspacePage = lazy(() => import('@/pages/operator/TicketWorkspacePage'));  // ← добавили
+const TemplatesPage = lazy(()=> import('@/pages/operator/TemplatesPage'))
 // Manager pages
 const AnalyticsDashboard = lazy(() => import('@/pages/manager/AnalyticsDashboard'));
 
 // Auth pages
-const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then(m => ({ default: m.LoginPage })));
-const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then(m => ({ default: m.RegisterPage })));
-const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
+const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
+const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'));
 
 // ========== FALLBACK КОМПОНЕНТ ==========
 const PageLoader = () => (
@@ -138,77 +143,59 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <ClientLayout />,
-        children: [
-          {
-            path: 'dashboard',
-            element: withSuspense(DashboardPage),
-          },
-          {
-            path: 'tickets/create',
-            element: (
-              <div className="space-y-6">
-                <h1 className="text-3xl font-bold">Создать заявку</h1>
-                <p className="text-gray-600">Форма создания заявки (скоро)...</p>
-              </div>
-            ),
-          },
-          {
-            path: 'tickets/:id',
-            element: (
-              <div className="space-y-6">
-                <h1 className="text-3xl font-bold">Детали заявки</h1>
-                <p className="text-gray-600">Детальная информация (скоро)...</p>
-              </div>
-            ),
-          },
-        ],
+      children: [
+        {
+          path: 'dashboard',
+          element: withSuspense(DashboardPage),
+        },
+        {
+          path: 'tickets/create',
+          element: withSuspense(CreateTicketPage),  // ← реальная страница
+        },
+        {
+          path: 'tickets/:id',
+          element: withSuspense(TicketDetailPage),  // ← реальная страница
+        },
+      ],
+
       },
     ],
   },
 
   // ========== ИНТЕРФЕЙС ОПЕРАТОРА (ЗАЩИЩЕНО) ==========
   {
-    path: '/operator',
-    element: <ProtectedRoute roles={[UserRole.OPERATOR, UserRole.SPECIALIST]} />,
-    children: [
-      {
-        element: <OperatorLayout />,
-        children: [
-          {
-            path: 'queue',
-            element: withSuspense(QueuePage),
-          },
-          {
-            path: 'my-tickets',
-            element: (
-              <div className="space-y-6">
-                <h1 className="text-3xl font-bold">Мои заявки</h1>
-                <p className="text-gray-600">Список моих заявок (скоро)...</p>
-              </div>
-            ),
-          },
-          {
-            path: 'tickets/:id',
-            element: (
-              <div className="space-y-6">
-                <h1 className="text-3xl font-bold">Рабочее пространство</h1>
-                <p className="text-gray-600">Работа с заявкой (скоро)...</p>
-              </div>
-            ),
-          },
-          {
-            path: 'templates',
-            element: (
-              <div className="space-y-6">
-                <h1 className="text-3xl font-bold">Шаблоны ответов</h1>
-                <p className="text-gray-600">Библиотека шаблонов (скоро)...</p>
-              </div>
-            ),
-          },
-        ],
-      },
-    ],
-  },
+  path: '/operator',
+  element: <ProtectedRoute roles={[UserRole.OPERATOR, UserRole.SPECIALIST]} />,
+  children: [
+    {
+      element: <OperatorLayout />,
+      children: [
+        {
+          path: 'queue',
+          element: withSuspense(QueuePage),
+        },
+        {
+          path: 'my-tickets',
+          element: withSuspense(MyTicketsPage),  // ← реальная страница
+        },
+        {
+          path: 'tickets/:id',
+          element: withSuspense(TicketWorkspacePage),  // ← реальная страница
+        },
+        {
+          path: 'templates',
+          element: (
+            <div className="space-y-6">
+              <h1 className="text-3xl font-bold">Шаблоны ответов</h1>
+              <p className="text-gray-600">Библиотека шаблонов (скоро)...</p>
+            </div>
+          ),
+        },
+      ],
+    },
+  ],
+},
+
 
   // ========== ИНТЕРФЕЙС РУКОВОДИТЕЛЯ (ЗАЩИЩЕНО) ==========
   {

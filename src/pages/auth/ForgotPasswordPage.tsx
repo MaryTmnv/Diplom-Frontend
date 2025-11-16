@@ -7,7 +7,7 @@ import { forgotPasswordSchema, ForgotPasswordFormData } from '@/shared/lib/schem
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Label, Input, Button } from '@/shared/ui';
 
-export const ForgotPasswordPage = () => {
+function ForgotPasswordPage () {
   const { forgotPassword } = useAuth();
 
   const {
@@ -72,3 +72,5 @@ export const ForgotPasswordPage = () => {
     </div>
   );
 };
+
+export default ForgotPasswordPage;

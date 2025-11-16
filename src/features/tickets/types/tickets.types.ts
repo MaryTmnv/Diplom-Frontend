@@ -57,6 +57,8 @@ export interface Ticket {
     avatar?: string | null;
     clientProfile?: {
       isVip: boolean;
+      totalTickets: number;     
+      resolvedTickets: number;   
     };
   };
   operatorId?: string | null;

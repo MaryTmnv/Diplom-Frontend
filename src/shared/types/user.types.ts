@@ -1,22 +1,22 @@
 export enum UserRole {
-  CLIENT = 'CLIENT',           
+  CLIENT = 'CLIENT',
   OPERATOR = 'OPERATOR',
   SPECIALIST = 'SPECIALIST',
   MANAGER = 'MANAGER',
-  ADMIN = 'ADMIN',            
+  ADMIN = 'ADMIN',
 }
 
 export interface ClientProfile {
   id: string;
   isVip: boolean;
-  totalTickets: number;
-  resolvedTickets: number;
+  totalTickets: number;      // ← добавили
+  resolvedTickets: number;   // ← добавили
 }
 
 export interface OperatorStats {
   totalResolved: number;
-  averageResolutionTime: number;  // в минутах
-  averageRating: number;          // 0-5
+  averageResolutionTime: number;
+  averageRating: number;
 }
 
 export interface User {
