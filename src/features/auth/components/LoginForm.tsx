@@ -7,7 +7,6 @@ import { Link } from 'react-router-dom';
 import { loginSchema, LoginFormData } from '@/shared/lib/schemas/authSchemas';
 import { useAuth } from '../hooks/useAuth';
 import { Label, Input, Button } from '@/shared/ui';
-import { Checkbox } from '@/shared/ui/Checkbox';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -21,18 +20,13 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
-    watch,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
       password: '',
-      rememberMe: false,
     },
   });
-
-  const rememberMe = watch('rememberMe');
 
   const onSubmit = (data: LoginFormData) => {
     login(data, {
@@ -92,23 +86,8 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
         )}
       </div>
 
-      {/* Remember Me + Forgot Password */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="rememberMe"
-            checked={rememberMe}
-            onCheckedChange={(checked) => setValue('rememberMe', !!checked)}
-            disabled={isLoggingIn}
-          />
-          <Label
-            htmlFor="rememberMe"
-            className="text-sm font-normal cursor-pointer"
-          >
-            Запомнить меня
-          </Label>
-        </div>
-
+      {/* Forgot Password (убрали Remember Me) */}
+      <div className="flex items-center justify-end">
         <Link
           to="/auth/forgot-password"
           className="text-sm text-primary-600 hover:text-primary-700 font-medium"

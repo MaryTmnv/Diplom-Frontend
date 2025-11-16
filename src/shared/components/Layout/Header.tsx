@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { Menu, User, LogOut, Settings } from 'lucide-react';
-
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { Avatar, Button, DropdownMenu, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/shared/ui';
 import { AvatarImage, AvatarFallback } from '@/shared/ui/Avatar';
@@ -25,6 +24,9 @@ export const Header = ({
   onLogout,
 }: HeaderProps) => {
   const isPublic = variant === 'public';
+  
+  // Базовый путь в зависимости от роли
+  const basePath = isPublic ? '' : `/${variant}`;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-white shadow-sm">
@@ -129,15 +131,17 @@ export const Header = ({
 
                   <DropdownMenuSeparator />
 
+                  {/* Динамический путь к профилю */}
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer">
+                    <Link to={`${basePath}/profile`} className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       Профиль
                     </Link>
                   </DropdownMenuItem>
 
+                  {/* Динамический путь к настройкам */}
                   <DropdownMenuItem asChild>
-                    <Link to="/settings" className="cursor-pointer">
+                    <Link to={`${basePath}/settings`} className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
                       Настройки
                     </Link>

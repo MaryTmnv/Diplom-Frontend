@@ -2,21 +2,21 @@ import { useChat } from '../hooks/useChat';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { TypingIndicator } from './TypingIndicator';
-import { Wifi, WifiOff } from 'lucide-react';
+import { Wifi, WifiOff, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/utils/cn';
 import { Card } from '@/shared/ui';
 
 interface ChatWindowProps {
   ticketId: string;
   ticketNumber?: string;
-  ticketCategory?: string;  // ← добавили
+  ticketCategory?: string;
   className?: string;
 }
 
 export const ChatWindow = ({ 
   ticketId, 
   ticketNumber, 
-  ticketCategory,  // ← добавили
+  ticketCategory,
   className 
 }: ChatWindowProps) => {
   const {
@@ -29,39 +29,51 @@ export const ChatWindow = ({
   } = useChat(ticketId);
 
   return (
-    <Card className={cn('flex flex-col h-[600px]', className)}>
+    <Card className={cn('flex flex-col overflow-hidden', className)}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+      <div className="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-gray-50 to-white">
         <div>
-          <h3 className="font-semibold text-gray-900">Переписка</h3>
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <Users className="w-5 h-5 text-primary-600" />
+            Переписка
+          </h3>
           {ticketNumber && (
-            <p className="text-xs text-gray-500">Заявка {ticketNumber}</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Заявка {ticketNumber}
+            </p>
           )}
         </div>
 
         {/* Статус подключения */}
-        <div className="flex items-center gap-2">
+        <div className={cn(
+          'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium',
+          isConnected 
+            ? 'bg-green-100 text-green-700' 
+            : 'bg-red-100 text-red-700'
+        )}>
           {isConnected ? (
             <>
-              <Wifi className="w-4 h-4 text-green-600" />
-              <span className="text-xs text-green-600 font-medium">Онлайн</span>
+              <Wifi className="w-3.5 h-3.5" />
+              <span>Онлайн</span>
             </>
           ) : (
             <>
-              <WifiOff className="w-4 h-4 text-red-600" />
-              <span className="text-xs text-red-600 font-medium">Оффлайн</span>
+              <WifiOff className="w-3.5 h-3.5" />
+              <span>Оффлайн</span>
             </>
           )}
         </div>
       </div>
 
       {/* Список сообщений */}
-      <div className="flex-1 overflow-y-auto bg-gray-50">
+      <div className="flex-1 overflow-hidden bg-gradient-to-b from-gray-50 to-white">
         <MessageList messages={messages} isLoading={isLoading} />
 
         {/* Индикатор печати */}
         {typingUsers.length > 0 && (
-          <TypingIndicator userName="Оператор" />
+          <div className="px-4 pb-2">
+            <TypingIndicator userName="Оператор" />
+          </div>
         )}
       </div>
 
@@ -70,7 +82,7 @@ export const ChatWindow = ({
         onSend={sendMessage}
         onTyping={emitTyping}
         disabled={!isConnected}
-        ticketCategory={ticketCategory}  // ← передаём категорию
+        ticketCategory={ticketCategory}
         placeholder={
           isConnected
             ? 'Введите сообщение...'

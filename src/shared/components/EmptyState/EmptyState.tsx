@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-
+import { Button } from '@/shared/ui';
+import { ReactNode } from 'react';
 
 interface EmptyStateProps {
   icon?: ReactNode;
@@ -18,16 +18,16 @@ export const EmptyState = ({
   action 
 }: EmptyStateProps) => {
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
       {/* Иконка */}
       {icon && (
-        <div className="mb-4 text-gray-400 text-5xl">
+        <div className="mb-6 text-gray-400 text-6xl opacity-50">
           {icon}
         </div>
       )}
 
       {/* Заголовок */}
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+      <h3 className="text-xl font-semibold text-gray-900 mb-2">
         {title}
       </h3>
 
@@ -40,12 +40,9 @@ export const EmptyState = ({
 
       {/* Действие */}
       {action && (
-        <button
-          onClick={action.onClick}
-          className="btn-primary"
-        >
+        <Button onClick={action.onClick}>
           {action.label}
-        </button>
+        </Button>
       )}
     </div>
   );

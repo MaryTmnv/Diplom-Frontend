@@ -10,7 +10,6 @@ export const loginSchema = z.object({
     .string()
     .min(8, 'Минимум 8 символов')
     .max(100, 'Максимум 100 символов'),
-  rememberMe: z.boolean().optional(),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;

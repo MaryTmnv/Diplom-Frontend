@@ -16,13 +16,15 @@ export const ArticleList = ({ articles, isLoading, onArticleClick }: ArticleList
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="card p-4 space-y-3">
-            <Skeleton className="h-6 w-24 rounded-full" />
-            <Skeleton className="h-5 w-full" />
+          <div key={i} className="bg-white rounded-xl border-2 border-gray-200 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-7 w-32 rounded-lg" />
+              <Skeleton className="h-5 w-12 rounded" />
+            </div>
+            <Skeleton className="h-6 w-full" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-3/4" />
             <div className="flex gap-4 pt-4">
-              <Skeleton className="h-4 w-16" />
               <Skeleton className="h-4 w-16" />
               <Skeleton className="h-4 w-16" />
             </div>
@@ -35,23 +37,30 @@ export const ArticleList = ({ articles, isLoading, onArticleClick }: ArticleList
   // Empty state
   if (!articles || articles.length === 0) {
     return (
-      <EmptyState
-        icon={<BookOpen className="w-16 h-16" />}
-        title="Статей не найдено"
-        description="Попробуйте изменить фильтры или поисковый запрос"
-      />
+      <div className="py-16">
+        <EmptyState
+          icon={<BookOpen className="w-20 h-20" />}
+          title="Статей не найдено"
+          description="Попробуйте изменить фильтры или поисковый запрос"
+        />
+      </div>
     );
   }
 
-  // Articles grid
+  // Articles grid с анимацией появления
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {articles.map((article) => (
-        <ArticleCard
+      {articles.map((article, index) => (
+        <div
           key={article.id}
-          article={article}
-          onClick={() => onArticleClick?.(article)}
-        />
+          className="animate-fade-in"
+          style={{ animationDelay: `${index * 50}ms` }}
+        >
+          <ArticleCard
+            article={article}
+            onClick={() => onArticleClick?.(article)}
+          />
+        </div>
       ))}
     </div>
   );

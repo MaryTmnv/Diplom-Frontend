@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { TemplateSelector } from '@/features/templates/components/TemplateSelector';  // ← добавили
-import { Send, Paperclip, FileText } from 'lucide-react';
+import { TemplateSelector } from '@/features/templates/components/TemplateSelector';
+import { Send, Paperclip, FileText, Smile } from 'lucide-react';
 import { cn } from '@/shared/lib/utils/cn';
 import { Button } from '@/shared/ui';
 
@@ -10,7 +10,7 @@ interface MessageInputProps {
   isLoading?: boolean;
   placeholder?: string;
   disabled?: boolean;
-  ticketCategory?: string;  // ← добавили для шаблонов
+  ticketCategory?: string;
 }
 
 export const MessageInput = ({
@@ -19,10 +19,11 @@ export const MessageInput = ({
   isLoading,
   placeholder = 'Введите сообщение...',
   disabled,
-  ticketCategory,  // ← добавили
+  ticketCategory,
 }: MessageInputProps) => {
   const [message, setMessage] = useState('');
-  const [showTemplates, setShowTemplates] = useState(false);  // ← добавили
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -30,7 +31,7 @@ export const MessageInput = ({
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   }, [message]);
 
@@ -42,12 +43,10 @@ export const MessageInput = ({
     if (onTyping) {
       onTyping(true);
 
-      // Сбрасываем таймер
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
 
-      // Убираем индикатор через 1 секунду после остановки печати
       typingTimeoutRef.current = setTimeout(() => {
         onTyping(false);
       }, 1000);
@@ -61,12 +60,10 @@ export const MessageInput = ({
     onSend(message.trim());
     setMessage('');
 
-    // Убираем индикатор печати
     if (onTyping) {
       onTyping(false);
     }
 
-    // Фокус обратно на textarea
     textareaRef.current?.focus();
   };
 
@@ -85,76 +82,117 @@ export const MessageInput = ({
     textareaRef.current?.focus();
   };
 
+  const canSend = message.trim().length > 0 && !isLoading && !disabled;
+
   return (
-    <div className="border-t bg-white p-4">
-      <div className="flex items-end gap-2">
+    <div className="border-t bg-gradient-to-b from-white to-gray-50 p-4">
+      {/* Toolbar */}
+      <div className="flex items-center gap-2 mb-3">
         {/* Кнопка шаблонов */}
         <Button
           type="button"
           variant="ghost"
-          size="icon"
-          className="shrink-0"
+          size="sm"
           onClick={() => setShowTemplates(true)}
           disabled={disabled}
-          title="Шаблоны ответов"
+          className="gap-2"
         >
-          <FileText className="w-5 h-5" />
+          <FileText className="w-4 h-4" />
+          <span className="text-xs hidden sm:inline">Шаблоны</span>
         </Button>
 
         {/* Кнопка прикрепления файлов */}
         <Button
           type="button"
           variant="ghost"
-          size="icon"
-          className="shrink-0"
+          size="sm"
           disabled={disabled}
-          title="Прикрепить файл"
+          className="gap-2"
         >
-          <Paperclip className="w-5 h-5" />
+          <Paperclip className="w-4 h-4" />
+          <span className="text-xs hidden sm:inline">Файлы</span>
         </Button>
 
+        {/* Эмодзи (placeholder) */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={disabled}
+          className="gap-2"
+        >
+          <Smile className="w-4 h-4" />
+        </Button>
+      </div>
+
+      {/* Input area */}
+      <div className={cn(
+        'flex items-end gap-2 p-3 rounded-xl border-2 transition-all duration-200',
+        isFocused 
+          ? 'border-primary-500 bg-white shadow-lg ring-4 ring-primary-100' 
+          : 'border-gray-300 bg-white shadow-sm'
+      )}>
         {/* Textarea */}
         <textarea
           ref={textareaRef}
           value={message}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
           disabled={disabled || isLoading}
           rows={1}
           className={cn(
-            'flex-1 resize-none rounded-lg border border-gray-300 bg-white px-4 py-2.5',
+            'flex-1 resize-none bg-transparent',
             'text-sm text-gray-900 placeholder-gray-400',
-            'focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:outline-none',
-            'disabled:bg-gray-100 disabled:cursor-not-allowed',
-            'transition-colors duration-200',
-            'max-h-32 overflow-y-auto'
+            'focus:outline-none',
+            'max-h-[120px] overflow-y-auto',
+            'disabled:cursor-not-allowed disabled:opacity-50'
           )}
-          style={{ minHeight: '42px' }}
+          style={{ minHeight: '24px' }}
         />
 
         {/* Кнопка отправки */}
         <Button
           type="button"
           onClick={handleSend}
-          disabled={!message.trim() || isLoading || disabled}
-          className="shrink-0"
+          disabled={!canSend}
+          size="icon"
+          className={cn(
+            'shrink-0 transition-all duration-200',
+            canSend 
+              ? 'bg-gradient-to-br from-primary-600 to-primary-700 shadow-md hover:shadow-lg hover:scale-105' 
+              : 'bg-gray-300'
+          )}
         >
           <Send className="w-4 h-4" />
         </Button>
       </div>
 
       {/* Подсказка */}
-      <p className="text-xs text-gray-500 mt-2 px-1">
-        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs">
-          Enter
-        </kbd>{' '}
-        — отправить,{' '}
-        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs">
-          Shift + Enter
-        </kbd>{' '}
-        — новая строка
-      </p>
+      <div className="flex items-center justify-between mt-2 px-1">
+        <p className="text-xs text-gray-500">
+          <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">
+            Enter
+          </kbd>{' '}
+          — отправить,{' '}
+          <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">
+            Shift + Enter
+          </kbd>{' '}
+          — новая строка
+        </p>
+
+        {/* Счётчик символов */}
+        {message.length > 0 && (
+          <span className={cn(
+            'text-xs',
+            message.length > 1000 ? 'text-red-600 font-semibold' : 'text-gray-500'
+          )}>
+            {message.length} / 2000
+          </span>
+        )}
+      </div>
 
       {/* Модальное окно шаблонов */}
       {showTemplates && (
