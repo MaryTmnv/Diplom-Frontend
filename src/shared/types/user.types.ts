@@ -3,6 +3,7 @@ export enum UserRole {
   OPERATOR = 'OPERATOR',
   SPECIALIST = 'SPECIALIST',
   MANAGER = 'MANAGER',
+  ADMIN = 'ADMIN'
 }
 
 export interface ClientProfile {

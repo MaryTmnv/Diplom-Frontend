@@ -24,16 +24,10 @@ const clientNavItems: NavItem[] = [
 ];
 
 export const ClientLayout = () => {
-  console.log('🏗️ ClientLayout rendering');
-  
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useAuthStore(); // ← Используем РЕАЛЬНОГО пользователя
+  const { user, logout } = useAuthStore();
 
-  console.log('🏗️ ClientLayout user:', user);
-
-  // Если пользователя нет (не должно происходить, но на всякий случай)
   if (!user) {
-    console.error('❌ ClientLayout: No user found!');
     return null;
   }
 
@@ -41,28 +35,25 @@ export const ClientLayout = () => {
     <div className="min-h-screen bg-gray-50">
       <Header
         variant="client"
-        user={user} // ← Передаём реального пользователя
+        user={user}
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-        onLogout={logout} // ← Используем реальный logout
+        onLogout={logout}
       />
 
       <div className="flex">
-        {/* Sidebar - скрыт на мобильных */}
+        {/* Desktop Sidebar */}
         <div className="hidden md:block">
           <Sidebar items={clientNavItems} />
         </div>
 
-        {/* Mobile Sidebar (overlay) */}
+        {/* Mobile Sidebar */}
         {sidebarOpen && (
           <>
-            {/* Backdrop */}
             <div
               className="fixed inset-0 bg-black/50 z-40 md:hidden"
               onClick={() => setSidebarOpen(false)}
             />
-            
-            {/* Sidebar */}
-            <div className="fixed left-0 top-16 bottom-0 w-64 bg-white z-50 md:hidden animate-slide-in-left">
+            <div className="fixed left-0 top-16 bottom-0 w-64 bg-white z-50 md:hidden">
               <Sidebar items={clientNavItems} />
             </div>
           </>

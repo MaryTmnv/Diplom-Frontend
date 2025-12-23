@@ -1,37 +1,45 @@
 import { Outlet } from 'react-router-dom';
 import { useState } from 'react';
-import { BarChart3, Users, FileBarChart } from 'lucide-react';
+import { BarChart3, Users, FileBarChart, Shield } from 'lucide-react';
 import { Header } from './Header';
 import { Sidebar, NavItem } from './Sidebar';
 import { useAuthStore } from '@/features/auth/store/authStore';
-
-const managerNavItems: NavItem[] = [
-  {
-    label: 'Аналитика',
-    href: '/manager/analytics',
-    icon: BarChart3,
-  },
-  {
-    label: 'Команда',
-    href: '/manager/team',
-    icon: Users,
-  },
-  {
-    label: 'Отчёты',
-    href: '/manager/reports',
-    icon: FileBarChart,
-  },
-];
+import { UserRole } from '@/shared/types/user.types';
 
 export const ManagerLayout = () => {
-  console.log('🏗️ ManagerLayout rendering');
-  
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuthStore();
 
   if (!user) {
-    console.error('❌ ManagerLayout: No user found!');
     return null;
+  }
+
+  // Базовые пункты меню
+  const navItems: NavItem[] = [
+    {
+      label: 'Аналитика',
+      href: '/manager/analytics',
+      icon: BarChart3,
+    },
+    {
+      label: 'Команда',
+      href: '/manager/team',
+      icon: Users,
+    },
+    {
+      label: 'Отчёты',
+      href: '/manager/reports',
+      icon: FileBarChart,
+    },
+  ];
+
+  // Если ADMIN - добавляем дополнительный пункт
+  if (user.role === UserRole.ADMIN) {
+    navItems.push({
+      label: 'Администрирование',
+      href: '/manager/admin',
+      icon: Shield,
+    });
   }
 
   return (
@@ -44,10 +52,12 @@ export const ManagerLayout = () => {
       />
 
       <div className="flex">
+        {/* Desktop Sidebar */}
         <div className="hidden md:block">
-          <Sidebar items={managerNavItems} />
+          <Sidebar items={navItems} />
         </div>
 
+        {/* Mobile Sidebar */}
         {sidebarOpen && (
           <>
             <div
@@ -55,11 +65,12 @@ export const ManagerLayout = () => {
               onClick={() => setSidebarOpen(false)}
             />
             <div className="fixed left-0 top-16 bottom-0 w-64 bg-white z-50 md:hidden">
-              <Sidebar items={managerNavItems} />
+              <Sidebar items={navItems} />
             </div>
           </>
         )}
 
+        {/* Main Content */}
         <main className="flex-1 p-6">
           <Outlet />
         </main>

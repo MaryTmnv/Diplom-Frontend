@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 
 export const useNotifications = () => {
   const queryClient = useQueryClient();
-  const { accessToken } = useAuthStore();
+  const { token } = useAuthStore(); // ← Используем token вместо accessToken
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -19,25 +19,23 @@ export const useNotifications = () => {
   const { data: notificationsResponse } = useQuery({
     queryKey: queryKeys.notifications.all,
     queryFn: () => notificationsApi.getNotifications({ limit: 50 }),
-    enabled: !!accessToken,
+    enabled: !!token,
   });
 
   // Подключение к WebSocket
   useEffect(() => {
-    if (!accessToken) return;
+    if (!token) return;
 
-    const notifSocket = initNotificationsSocket(accessToken);
+    const notifSocket = initNotificationsSocket(token);
     setSocket(notifSocket);
 
     // ========== ОБРАБОТЧИКИ СОБЫТИЙ ==========
 
     notifSocket.on('connect', () => {
-      console.log('✅ Notifications connected');
       setIsConnected(true);
     });
 
     notifSocket.on('connected', (data: { message: string; userId: string; unreadCount: number }) => {
-      console.log('Authenticated notifications:', data);
       setUnreadCount(data.unreadCount);
       
       // Подписываемся на уведомления
@@ -45,7 +43,6 @@ export const useNotifications = () => {
     });
 
     notifSocket.on('disconnect', () => {
-      console.log('❌ Notifications disconnected');
       setIsConnected(false);
     });
 
@@ -54,9 +51,7 @@ export const useNotifications = () => {
     });
 
     // Новое уведомление
-    notifSocket.on('notification', (notification: AppNotification) => {  // ← используем AppNotification
-      console.log('🔔 New notification:', notification);
-
+    notifSocket.on('notification', (notification: AppNotification) => {
       // Добавляем в кэш
       queryClient.setQueryData<AppNotification[]>(
         queryKeys.notifications.list(),
@@ -66,7 +61,7 @@ export const useNotifications = () => {
       // Увеличиваем счётчик
       setUnreadCount((prev) => prev + 1);
 
-      // Показываем toast (простая версия)
+      // Показываем toast
       const icon = getNotificationIcon(notification.type);
       toast(
         `${icon} ${notification.title}`,
@@ -103,14 +98,13 @@ export const useNotifications = () => {
 
     // Обновление счётчика
     notifSocket.on('unread-count', (data: { count: number }) => {
-      console.log('Unread count updated:', data.count);
       setUnreadCount(data.count);
     });
 
     return () => {
-      // Не отключаем socket полностью
+      notifSocket.disconnect();
     };
-  }, [accessToken, queryClient]);
+  }, [token, queryClient]);
 
   // ========== MUTATIONS ==========
 
@@ -142,7 +136,6 @@ export const useNotifications = () => {
 
   const requestPermission = useCallback(async () => {
     if (!('Notification' in window)) {
-      console.log('Браузер не поддерживает уведомления');
       return;
     }
 
@@ -175,8 +168,10 @@ const getNotificationIcon = (type: NotificationType): string => {
     [NotificationType.TICKET_RESOLVED]: '✅',
     [NotificationType.NEW_MESSAGE]: '💬',
     [NotificationType.MENTION]: '📢',
+    [NotificationType.TICKET_CLOSED]: '',
+    [NotificationType.SYSTEM]: ''
   };
-  return icons[type];
+  return icons[type] || '🔔';
 };
 
 const playNotificationSound = () => {

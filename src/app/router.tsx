@@ -38,7 +38,9 @@ const TemplatesPage = lazy(() => import('@/pages/operator/TemplatesPage'));
 
 // Manager pages
 const AnalyticsDashboard = lazy(() => import('@/pages/manager/AnalyticsDashboard'));
-
+const TeamPerformancePage = lazy(() => import('@/pages/manager/TeamPerformancePage'));
+const ReportsPage = lazy(() => import('@/pages/manager/ReportsPage'));
+const AdminPage = lazy(() => import('@/pages/manager/AdminPage'));
 // ========== FALLBACK КОМПОНЕНТ ==========
 const PageLoader = () => (
   <LoadingSpinner fullScreen text="Загрузка страницы..." />
@@ -168,7 +170,7 @@ export const router = createBrowserRouter([
   // ========== ИНТЕРФЕЙС РУКОВОДИТЕЛЯ (ЗАЩИЩЕНО) ==========
   {
     path: '/manager',
-    element: <ProtectedRoute roles={[UserRole.MANAGER]} />,
+    element: <ProtectedRoute roles={[UserRole.MANAGER, UserRole.ADMIN]} />,
     children: [
       {
         element: <ManagerLayout />,
@@ -178,23 +180,18 @@ export const router = createBrowserRouter([
             element: withSuspense(AnalyticsDashboard),
           },
           {
-            path: 'team',
-            element: (
-              <div className="space-y-6">
-                <h1 className="text-3xl font-bold">Команда</h1>
-                <p className="text-gray-600">Производительность команды (скоро)...</p>
-              </div>
-            ),
-          },
-          {
-            path: 'reports',
-            element: (
-              <div className="space-y-6">
-                <h1 className="text-3xl font-bold">Отчёты</h1>
-                <p className="text-gray-600">Генерация отчётов (скоро)...</p>
-              </div>
-            ),
-          },
+              path: 'team',
+              element: withSuspense(TeamPerformancePage),  // ← обновили
+            },
+            {
+              path: 'reports',
+              element: withSuspense(ReportsPage),  // ← обновили
+            },
+            {
+              path: 'admin',
+              element: withSuspense(AdminPage),  // ← добавили
+            },
+
            // Общие страницы
         {
           path: 'profile',

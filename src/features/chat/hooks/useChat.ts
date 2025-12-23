@@ -9,7 +9,7 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import toast from 'react-hot-toast';
 export const useChat = (ticketId: string) => {
   const queryClient = useQueryClient();
-  const { accessToken, user } = useAuthStore();
+  const { token, user } = useAuthStore();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
@@ -29,9 +29,9 @@ export const useChat = (ticketId: string) => {
 
   // Подключение к WebSocket
   useEffect(() => {
-    if (!accessToken || !ticketId) return;
+    if (!token || !ticketId) return;
 
-    const chatSocket = initChatSocket(accessToken);
+    const chatSocket = initChatSocket(token);
     setSocket(chatSocket);
 
     // ========== ОБРАБОТЧИКИ СОБЫТИЙ ==========
@@ -156,7 +156,7 @@ export const useChat = (ticketId: string) => {
       }
       // Не отключаем socket полностью, может использоваться в других местах
     };
-  }, [ticketId, accessToken, user?.id, queryClient]);
+  }, [ticketId, token, user?.id, queryClient]);
 
   // ========== МЕТОДЫ ==========
 

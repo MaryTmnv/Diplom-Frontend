@@ -1,10 +1,12 @@
-import { api } from '@/shared/lib/api/apiClient';
+import { api, apiClient } from '@/shared/lib/api/apiClient';
 import {
   LoginDto,
   RegisterDto,
   AuthResponse,
 } from '../types/auth.types';
 import { UserType } from '@/shared/types/user.types';
+import { useAuthStore } from '../store/authStore';
+import toast from 'react-hot-toast';
 
 export const authApi = {
   // Вход
@@ -37,4 +39,9 @@ export const authApi = {
   resetPassword: async (token: string, password: string): Promise<void> => {
     return api.post<void>('/auth/reset-password', { token, password });
   },
+  refreshToken: async (): Promise<string> => {
+    const response = await apiClient.post<{ accessToken: string }>('/auth/refresh');
+    return response.data.accessToken;
+  },
+  
 };

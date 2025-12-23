@@ -21,22 +21,35 @@ const sizeClasses = {
   icon: 'h-10 w-10',
 };
 
+// Функция для генерации классов (для использования в других компонентах)
+export const buttonVariants = ({
+  variant = 'default',
+  size = 'md',
+  className = '',
+}: {
+  variant?: ButtonProps['variant'];
+  size?: ButtonProps['size'];
+  className?: string;
+} = {}) => {
+  return cn(
+    'inline-flex items-center justify-center gap-2',
+    'rounded-lg font-medium',
+    'focus:ring-4 focus:outline-none',
+    'transition-all duration-200',
+    'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
+    'active:scale-95',
+    variantClasses[variant],
+    sizeClasses[size],
+    className
+  );
+};
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'default', size = 'md', children, ...props }, ref) => {
     return (
       <button
         ref={ref}
-        className={cn(
-          'inline-flex items-center justify-center gap-2',
-          'rounded-lg font-medium',
-          'focus:ring-4 focus:outline-none',
-          'transition-all duration-200',
-          'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
-          'active:scale-95',
-          variantClasses[variant],
-          sizeClasses[size],
-          className
-        )}
+        className={buttonVariants({ variant, size, className })}
         {...props}
       >
         {children}
