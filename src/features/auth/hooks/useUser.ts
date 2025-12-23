@@ -3,12 +3,12 @@ import { useEffect } from 'react';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 import { queryKeys } from '@/shared/lib/api/queryClient';
-import { User } from '@/shared/types/user.types';
+import { UserType } from '@/shared/types/user.types';
 
 export const useUser = () => {
   const { isAuthenticated, setUser } = useAuthStore();
 
-  const { data: user, isLoading, error } = useQuery<User>({
+  const { data: user, isLoading, error } = useQuery<UserType>({
     queryKey: queryKeys.auth.user,
     queryFn: authApi.getCurrentUser,
     enabled: isAuthenticated, // Запрашиваем только если авторизован

@@ -1,4 +1,4 @@
-import { User, UserRole } from '@/shared/types/user.types';
+import { UserType, UserRole } from '@/shared/types/user.types';
 
 // ========== DTO (Data Transfer Objects) ==========
 
@@ -27,22 +27,20 @@ export interface ResetPasswordDto {
 // ========== Responses (по документации бэкенда) ==========
 
 export interface AuthResponse {
-  user: User;
+  user: UserType;
   accessToken: string;      // ← изменено с "token"
   refreshToken: string;
   expiresIn: number;        // ← добавлено
 }
 
 export interface TokenResponse {
-  accessToken: string;      // ← изменено с "token"
-  refreshToken: string;
-  expiresIn: number;        // ← добавлено
+  accessToken: string;      // ← изменено с "token"       
 }
 
 // ========== Store State ==========
 
 export interface AuthState {
-  user: User | null;
+  user: UserType | null;
   accessToken: string | null;     // ← изменено
   refreshToken: string | null;
   isAuthenticated: boolean;
@@ -51,7 +49,7 @@ export interface AuthState {
 
 export interface AuthActions {
   setAuth: (data: AuthResponse) => void;
-  setUser: (user: User) => void;
+  setUser: (user: UserType) => void;
   setAccessToken: (token: string) => void;  // ← изменено
   logout: () => void;
   clearAuth: () => void;

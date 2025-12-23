@@ -1,5 +1,5 @@
 import { api } from '@/shared/lib/api/apiClient';
-import { User } from '@/shared/types/user.types';
+import { UserType } from '@/shared/types/user.types';
 
 export interface UpdateProfileDto {
   firstName?: string;
@@ -15,8 +15,8 @@ export interface ChangePasswordDto {
 
 export const profileApi = {
   // Обновить профиль
-  updateProfile: async (userId: string, data: UpdateProfileDto): Promise<User> => {
-    return api.patch<User>(`/users/${userId}`, data);
+  updateProfile: async (userId: string, data: UpdateProfileDto): Promise<UserType> => {
+    return api.patch<UserType>(`/users/${userId}`, data);
   },
 
   // Изменить пароль

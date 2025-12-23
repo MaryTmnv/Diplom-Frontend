@@ -1,75 +1,147 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { AuthStore } from '../types/auth.types';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { UserType } from '@/shared/types/user.types';
+
+console.log('📦 authStore.ts loading...');
+
+interface AuthStore {
+  user: UserType | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  _hasHydrated: boolean;
+  setUser: (user: UserType) => void;
+  setToken: (token: string) => void;
+  logout: () => void;
+  setHasHydrated: (state: boolean) => void;
+}
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
-      // State
-      user: null,
-      accessToken: null,        // ← изменено
-      refreshToken: null,
-      isAuthenticated: false,
-      isLoading: false,
+    (set, get) => {
+      console.log('🏗️ Creating authStore');
+      
+      return {
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        _hasHydrated: false,
 
-      // Actions
-      setAuth: ({ user, accessToken, refreshToken }) => {  // ← изменено
-        // Сохраняем токены в localStorage
-        localStorage.setItem('auth_token', accessToken);
-        localStorage.setItem('refresh_token', refreshToken);
+        setUser: (user: UserType) => {
+          console.log('🔐 setUser called with:', user);
+          
+          set({ user, isAuthenticated: true });
+          
+          const newState = get();
+          console.log('🔐 State after setUser:', {
+            user: newState.user,
+            isAuthenticated: newState.isAuthenticated,
+          });
 
-        set({
-          user,
-          accessToken,           // ← изменено
-          refreshToken,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      },
+          // Проверяем что попало в localStorage
+          setTimeout(() => {
+            const lsData = localStorage.getItem('helpmate-auth-storage');
+            console.log('🔐 localStorage after setUser:', lsData);
+          }, 100);
+        },
 
-      setUser: (user) => {
-        set({ user });
-      },
+        setToken: (token: string) => {
+          console.log('🔑 setToken called with:', '***' + token.slice(-10));
+          
+          set({ token });
+          
+          const newState = get();
+          console.log('🔑 State after setToken:', {
+            token: newState.token ? '***' + newState.token.slice(-10) : null,
+          });
 
-      setAccessToken: (accessToken) => {  // ← изменено
-        localStorage.setItem('auth_token', accessToken);
-        set({ accessToken });
-      },
+          // Проверяем что попало в localStorage
+          setTimeout(() => {
+            const lsData = localStorage.getItem('helpmate-auth-storage');
+            console.log('🔑 localStorage after setToken:', lsData);
+          }, 100);
+        },
 
-      logout: () => {
-        // Очищаем localStorage
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('refresh_token');
+        logout: () => {
+          console.log('👋 logout called');
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+          });
+          console.log('👋 State after logout:', get());
+        },
 
-        set({
-          user: null,
-          accessToken: null,     // ← изменено
-          refreshToken: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
-      },
-
-      clearAuth: () => {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('refresh_token');
-        
-        set({
-          user: null,
-          accessToken: null,     // ← изменено
-          refreshToken: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
-      },
-    }),
+        setHasHydrated: (state: boolean) => {
+          console.log('💧 setHasHydrated called:', state);
+          set({ _hasHydrated: state });
+        },
+      };
+    },
     {
-      name: 'auth-storage',
-      // Сохраняем только user и isAuthenticated
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
+      name: 'helpmate-auth-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => {
+        console.log('💾 Partializing state:', {
+          user: state.user,
+          token: state.token ? '***' + state.token.slice(-10) : null,
+          isAuthenticated: state.isAuthenticated,
+        });
+        
+        const result = {
+          user: state.user,
+          token: state.token,
+          isAuthenticated: state.isAuthenticated,
+        };
+        
+        console.log('💾 Partialize result:', result);
+        return result;
+      },
+      onRehydrateStorage: () => {
+        console.log('💧 onRehydrateStorage: Starting...');
+        
+        return (state?: AuthStore, error?: unknown) => {
+          console.log('💧 Rehydration callback executing');
+          
+          if (error) {
+            console.error('💧 ❌ Hydration ERROR:', error);
+            return;
+          }
+          
+          if (!state) {
+            console.warn('💧 ⚠️ State is undefined');
+            return;
+          }
+          
+          console.log('💧 ✅ Hydration SUCCESS');
+          console.log('💧 Hydrated state:', {
+            user: state.user ? { email: state.user.email, role: state.user.role } : null,
+            token: state.token ? '***' + state.token.slice(-10) : null,
+            isAuthenticated: state.isAuthenticated,
+          });
+          
+          state.setHasHydrated(true);
+          console.log('💧 _hasHydrated set to TRUE');
+        };
+      },
     }
   )
 );
+
+console.log('📦 ✅ authStore created');
+
+// Хук для проверки гидратации
+export const useHasHydrated = () => {
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
+  return hasHydrated;
+};
+
+// Подписка на изменения (только в dev)
+if (import.meta.env.DEV) {
+  useAuthStore.subscribe((state) => {
+    console.log('🔔 Store updated:', {
+      user: state.user ? state.user.email : null,
+      isAuthenticated: state.isAuthenticated,
+      _hasHydrated: state._hasHydrated,
+    });
+  });
+}

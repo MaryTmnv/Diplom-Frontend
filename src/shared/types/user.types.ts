@@ -3,7 +3,6 @@ export enum UserRole {
   OPERATOR = 'OPERATOR',
   SPECIALIST = 'SPECIALIST',
   MANAGER = 'MANAGER',
-  ADMIN = 'ADMIN',
 }
 
 export interface ClientProfile {
@@ -19,7 +18,7 @@ export interface OperatorStats {
   averageRating: number;
 }
 
-export interface User {
+export interface UserType {
   id: string;
   email: string;
   firstName: string;

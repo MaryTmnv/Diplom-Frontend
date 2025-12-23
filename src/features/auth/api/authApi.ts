@@ -3,9 +3,8 @@ import {
   LoginDto,
   RegisterDto,
   AuthResponse,
-  TokenResponse,
 } from '../types/auth.types';
-import { User } from '@/shared/types/user.types';
+import { UserType } from '@/shared/types/user.types';
 
 export const authApi = {
   // Вход
@@ -15,24 +14,18 @@ export const authApi = {
 
   // Регистрация
   register: async (data: RegisterDto): Promise<AuthResponse> => {
-    // Убираем confirmPassword перед отправкой
     const { confirmPassword, ...registerData } = data as any;
     return api.post<AuthResponse>('/auth/register', registerData);
   },
 
   // Выход
-  logout: async (refreshToken: string): Promise<void> => {
-    return api.post<void>('/auth/logout', { refreshToken });
-  },
-
-  // Обновление токена
-  refreshToken: async (refreshToken: string): Promise<TokenResponse> => {
-    return api.post<TokenResponse>('/auth/refresh', { refreshToken });
+  logout: async (): Promise<void> => {
+    return api.post<void>('/auth/logout');
   },
 
   // Получение текущего пользователя
-  getCurrentUser: async (): Promise<User> => {
-    return api.get<User>('/auth/me');
+  getCurrentUser: async (): Promise<UserType> => {
+    return api.get<UserType>('/auth/me');
   },
 
   // Забыли пароль

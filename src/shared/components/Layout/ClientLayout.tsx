@@ -3,14 +3,7 @@ import { useState } from 'react';
 import { LayoutDashboard, MessageSquare, FileText } from 'lucide-react';
 import { Header } from './Header';
 import { Sidebar, NavItem } from './Sidebar';
-
-// Моковый пользователь (потом заменим на реальные данные из auth store)
-const mockUser = {
-  firstName: 'Иван',
-  lastName: 'Петров',
-  email: 'ivan@example.com',
-  avatar: undefined,
-};
+import { useAuthStore } from '@/features/auth/store/authStore';
 
 const clientNavItems: NavItem[] = [
   {
@@ -31,16 +24,26 @@ const clientNavItems: NavItem[] = [
 ];
 
 export const ClientLayout = () => {
+  console.log('🏗️ ClientLayout rendering');
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuthStore(); // ← Используем РЕАЛЬНОГО пользователя
+
+  console.log('🏗️ ClientLayout user:', user);
+
+  // Если пользователя нет (не должно происходить, но на всякий случай)
+  if (!user) {
+    console.error('❌ ClientLayout: No user found!');
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
         variant="client"
-        user={mockUser}
-        unreadNotifications={3}
+        user={user} // ← Передаём реального пользователя
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-        onLogout={() => console.log('Logout')}
+        onLogout={logout} // ← Используем реальный logout
       />
 
       <div className="flex">

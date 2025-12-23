@@ -1,13 +1,9 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { env } from '@/shared/config/env';
+import { useAuthStore } from '@/features/auth/store/authStore';
 
-// Тип для ответа refresh
-interface RefreshTokenResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-}
+console.log('📡 apiClient.ts loading...');
 
 // Создаём базовый axios instance
 export const apiClient = axios.create({
@@ -18,68 +14,63 @@ export const apiClient = axios.create({
   },
 });
 
-// Request interceptor - добавляем токен к каждому запросу
+// Request interceptor - добавляем токен из Zustand store
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth_token');
+    console.log('📤 API Request:', config.method?.toUpperCase(), config.url);
+    
+    // Получаем токен из Zustand store (НЕ из localStorage!)
+    const token = useAuthStore.getState().token;
     
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔑 Token added to request');
+    } else {
+      console.warn('⚠️ No token available for request');
     }
 
     return config;
   },
   (error) => {
+    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
 
 // Response interceptor - обработка ошибок
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('✅ API Response:', response.config.method?.toUpperCase(), response.config.url, response.status);
+    return response;
+  },
   async (error: any) => {
+    console.error('❌ API Error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.response?.data?.message,
+    });
+
     const originalRequest = error.config;
 
     // Обработка 401 - неавторизован
-    if (error.response?.status === 401 && !originalRequest?._retry) {
-      originalRequest._retry = true;
+    if (error.response?.status === 401) {
+      console.warn('🚨 401 Unauthorized');
 
-      try {
-        // Попытка обновить токен
-        const refreshToken = localStorage.getItem('refresh_token');
-        
-        if (!refreshToken) {
-          throw new Error('No refresh token');
-        }
+      // ⚠️ НЕ ДЕЛАЕМ АВТОМАТИЧЕСКИЙ LOGOUT!
+      // Просто логируем и возвращаем ошибку
+      // Пусть компоненты сами решают что делать
 
-        const response = await axios.post<RefreshTokenResponse>(
-          `${env.apiUrl}/auth/refresh`,
-          { refreshToken }
-        );
+      // Можно показать toast
+      toast.error('Сессия истекла. Пожалуйста, войдите снова.');
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
-        localStorage.setItem('auth_token', accessToken);
-        localStorage.setItem('refresh_token', newRefreshToken);
-
-        // Повторяем оригинальный запрос с новым токеном
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        }
-        
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        // Если не удалось обновить токен - разлогиниваем
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('refresh_token');
-        window.location.href = '/auth/login';
-        return Promise.reject(refreshError);
-      }
+      // Возвращаем ошибку без редиректа
+      return Promise.reject(error);
     }
 
     // Обработка других ошибок
     const errorMessage = error.response?.data?.message || 'Произошла ошибка';
 
-    // Показываем toast только для не-401 ошибок
+    // Показываем toast для других ошибок
     if (error.response?.status !== 401) {
       toast.error(errorMessage);
     }
@@ -90,18 +81,30 @@ apiClient.interceptors.response.use(
 
 // Типизированные методы API
 export const api = {
-  get: <T = any>(url: string, config?: any) =>
-    apiClient.get<T>(url, config).then((res) => res.data),
+  get: <T = any>(url: string, config?: any) => {
+    console.log('🔵 api.get:', url);
+    return apiClient.get<T>(url, config).then((res) => res.data);
+  },
 
-  post: <T = any>(url: string, data?: unknown, config?: any) =>
-    apiClient.post<T>(url, data, config).then((res) => res.data),
+  post: <T = any>(url: string, data?: unknown, config?: any) => {
+    console.log('🟢 api.post:', url);
+    return apiClient.post<T>(url, data, config).then((res) => res.data);
+  },
 
-  put: <T = any>(url: string, data?: unknown, config?: any) =>
-    apiClient.put<T>(url, data, config).then((res) => res.data),
+  put: <T = any>(url: string, data?: unknown, config?: any) => {
+    console.log('🟡 api.put:', url);
+    return apiClient.put<T>(url, data, config).then((res) => res.data);
+  },
 
-  patch: <T = any>(url: string, data?: unknown, config?: any) =>
-    apiClient.patch<T>(url, data, config).then((res) => res.data),
+  patch: <T = any>(url: string, data?: unknown, config?: any) => {
+    console.log('🟠 api.patch:', url);
+    return apiClient.patch<T>(url, data, config).then((res) => res.data);
+  },
 
-  delete: <T = any>(url: string, config?: any) =>
-    apiClient.delete<T>(url, config).then((res) => res.data),
+  delete: <T = any>(url: string, config?: any) => {
+    console.log('🔴 api.delete:', url);
+    return apiClient.delete<T>(url, config).then((res) => res.data);
+  },
 };
+
+console.log('📡 ✅ apiClient configured');

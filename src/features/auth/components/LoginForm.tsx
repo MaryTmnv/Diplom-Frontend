@@ -3,7 +3,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-
 import { loginSchema, LoginFormData } from '@/shared/lib/schemas/authSchemas';
 import { useAuth } from '../hooks/useAuth';
 import { Label, Input, Button } from '@/shared/ui';
