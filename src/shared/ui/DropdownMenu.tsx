@@ -64,7 +64,7 @@ export interface DropdownMenuContentProps extends HTMLAttributes<HTMLDivElement>
 }
 
 export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>(
-  ({ className, align = 'end', children, ...props }, ref) => {
+  ({ className, align = 'end', children, ...props }) => {
     const { open, setOpen } = useDropdownContext();
     const contentRef = useRef<HTMLDivElement>(null);
 

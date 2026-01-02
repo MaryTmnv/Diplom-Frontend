@@ -12,7 +12,7 @@ import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { Breadcrumbs } from '@/shared/components/Navigation';
 import { Button, DropdownMenu, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, Card, CardHeader, CardTitle, CardContent } from '@/shared/ui';
 import { formatDate } from 'date-fns';
-import { ArrowLeft, Clock, AlertTriangle, CheckCircle, XCircle, Tag, Calendar, MessageSquare, FileText, BookOpen, ChevronDown, ChevronUp, Download, ExternalLink, FileIcon, Lightbulb, MessageCircle, MoreVertical, Paperclip, Phone, PlayCircle, Plus, Settings2, Star, StickyNote, User, Zap , History } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle, XCircle, Tag, Calendar, MessageSquare, FileText, BookOpen, ChevronDown, ChevronUp, Download, ExternalLink, FileIcon, Lightbulb, MessageCircle, MoreVertical, Paperclip, Phone, PlayCircle, Plus, Settings2, Star, StickyNote, User, Zap , History } from 'lucide-react';
 import { DropdownMenuTrigger, DropdownMenuContent } from '@/shared/ui/DropdownMenu';
 
 
@@ -396,55 +396,57 @@ export const TicketWorkspacePage = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-5 relative z-10">
-            {ticket.suggestions.similarTickets.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-[#03045e] mb-3 flex items-center gap-2">
-                  <History className="w-4 h-4 text-[#0077b6]" />
-                  Похожие решённые заявки
-                </p>
-                <div className="space-y-2">
-                  {ticket.suggestions.similarTickets.slice(0, 3).map((similar) => (
-                    <button
-                      key={similar.id}
-                      onClick={() => navigate(`/operator/tickets/${similar.id}`)}
-                      className="w-full text-left p-3 bg-white hover:bg-[#caf0f8]/50 rounded-xl transition-all group border border-[#90e0ef]/30 hover:border-[#0077b6]/30 hover:shadow-md"
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-semibold text-[#0077b6] text-sm">{similar.number}</p>
-                        <ExternalLink className="w-3 h-3 text-[#023e8a]/30 group-hover:text-[#0077b6] transition-colors" />
-                      </div>
-                      <p className="text-sm text-[#03045e]/70 truncate">{similar.title}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+  {ticket.suggestions?.similarTickets && ticket.suggestions.similarTickets.length > 0 && (
+    <div>
+      <p className="text-xs font-semibold text-[#03045e] mb-3 flex items-center gap-2">
+        <History className="w-4 h-4 text-[#0077b6]" />
+        Похожие решённые заявки
+      </p>
+      <div className="space-y-2">
+        {ticket.suggestions.similarTickets.slice(0, 3).map((similar) => (
+          <button
+            key={similar.id}
+            onClick={() => navigate(`/operator/tickets/${similar.id}`)}
+            className="w-full text-left p-3 bg-white hover:bg-[#caf0f8]/50 rounded-xl transition-all group border border-[#90e0ef]/30 hover:border-[#0077b6]/30 hover:shadow-md"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <p className="font-semibold text-[#0077b6] text-sm">{similar.number}</p>
+              <ExternalLink className="w-3 h-3 text-[#023e8a]/30 group-hover:text-[#0077b6] transition-colors" />
+            </div>
+            <p className="text-sm text-[#03045e]/70 truncate">{similar.title}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
 
-            {ticket.suggestions.articles.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-[#03045e] mb-3 flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-[#0077b6]" />
-                  Полезные статьи
-                </p>
-                <div className="space-y-2">
-                  {ticket.suggestions.articles.slice(0, 3).map((article: any) => (
-                    <a
-                      key={article.id}
-                      href={`/knowledge-base/${article.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block p-3 bg-white hover:bg-[#caf0f8]/50 rounded-xl transition-all group border border-[#90e0ef]/30 hover:border-[#0077b6]/30 hover:shadow-md"
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-semibold text-[#03045e] text-sm">{article.title}</p>
-                        <ExternalLink className="w-3 h-3 text-[#023e8a]/30 group-hover:text-[#0077b6] transition-colors" />
-                      </div>
-                      <p className="text-xs text-[#023e8a]/60 line-clamp-2">{article.excerpt}</p>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+
+             {ticket.suggestions?.articles && ticket.suggestions.articles.length > 0 && (
+    <div>
+      <p className="text-xs font-semibold text-[#03045e] mb-3 flex items-center gap-2">
+        <BookOpen className="w-4 h-4 text-[#0077b6]" />
+        Полезные статьи
+      </p>
+      <div className="space-y-2">
+        {ticket.suggestions.articles.slice(0, 3).map((article) => (
+          <a
+            key={article.id}
+            href={`/knowledge-base/${article.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block p-3 bg-white hover:bg-[#caf0f8]/50 rounded-xl transition-all group border border-[#90e0ef]/30 hover:border-[#0077b6]/30 hover:shadow-md"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <p className="font-semibold text-[#03045e] text-sm">{article.title}</p>
+              <ExternalLink className="w-3 h-3 text-[#023e8a]/30 group-hover:text-[#0077b6] transition-colors" />
+            </div>
+            <p className="text-xs text-[#023e8a]/60 line-clamp-2">{article.excerpt}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  )}
+
 
             {ticket.suggestions.templates && 
  Array.isArray(ticket.suggestions.templates) && 

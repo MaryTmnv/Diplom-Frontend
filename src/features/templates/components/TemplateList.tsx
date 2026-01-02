@@ -1,7 +1,6 @@
 import { Button, Skeleton } from '@/shared/ui';
 import { Template } from '../types/template.types';
 import { TemplateCard } from './TemplateCard';
-import { EmptyState } from '@/shared/components/EmptyState';
 import { FileText, Info, LayoutGrid, List, Plus, RotateCcw } from 'lucide-react';
 
 interface TemplateListProps {

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Template } from '../types/template.types';
 import { TemplateCard } from './TemplateCard';
 import { SearchBar } from '@/shared/components/SearchBar';
-import { EmptyState } from '@/shared/components/EmptyState';
 import { X, FileText, ArrowLeft, Check, Edit3, Eye, Hash, Loader2, Search } from 'lucide-react';
 import { useTemplatesByCategory, useUseTemplate } from '../hooks/useTemplate';
 import { Button, Label, Input } from '@/shared/ui';

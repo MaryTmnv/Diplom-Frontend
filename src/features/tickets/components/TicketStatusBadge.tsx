@@ -1,5 +1,5 @@
 import { TicketStatus } from '../types/tickets.types';
-import { getStatusLabel, getStatusColor } from '../utils/ticketHelpers';
+import { getStatusLabel } from '../utils/ticketHelpers';
 import { cn } from '@/shared/lib/utils/cn';
 
 interface TicketStatusBadgeProps {

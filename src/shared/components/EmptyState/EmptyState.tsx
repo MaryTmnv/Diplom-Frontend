@@ -1,5 +1,4 @@
 import { Button } from '@/shared/ui';
-import { ReactNode } from 'react'
 
 interface EmptyStateProps {
   icon?: React.ReactNode;

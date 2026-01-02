@@ -1,5 +1,4 @@
 import { TicketCard } from './TicketCard';
-import { EmptyState } from '@/shared/components/EmptyState';
 import { Button, Skeleton } from '@/shared/ui';
 import { ArrowUpDown, Inbox, Plus, Search } from 'lucide-react';
 import { Ticket } from '../types/tickets.types';

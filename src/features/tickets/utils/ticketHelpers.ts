@@ -40,6 +40,7 @@ export const getCategoryLabel = (category: TicketCategory): string => {
     [TicketCategory.MOBILE_APP]: 'Мобильное приложение',
     [TicketCategory.PAYMENTS]: 'Платежи',
     [TicketCategory.SECURITY]: 'Безопасность',
+    [TicketCategory.ACCOUNTS]: 'Аккаунты', // ← Добавь это
     [TicketCategory.OTHER]: 'Другое',
   };
   return labels[category];
@@ -88,10 +89,12 @@ export const getCategoryIcon = (category: TicketCategory): string => {
     [TicketCategory.MOBILE_APP]: '📱',
     [TicketCategory.PAYMENTS]: '💸',
     [TicketCategory.SECURITY]: '🔒',
+    [TicketCategory.ACCOUNTS]: '👤', // ← Добавь это
     [TicketCategory.OTHER]: '📋',
   };
   return icons[category];
 };
+
 
 // ========== ВЫЧИСЛЕНИЯ ==========
 

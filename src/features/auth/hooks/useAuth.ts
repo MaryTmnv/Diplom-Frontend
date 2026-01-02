@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
-import { LoginDto, RegisterDto } from '../types/auth.types';
 import { queryKeys } from '@/shared/lib/api/queryClient';
 import { getRoleBasePath } from '@/shared/lib/utils/roleRedirect';
 

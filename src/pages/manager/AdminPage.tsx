@@ -14,8 +14,7 @@ import {
 } from '@/shared/ui/alert-dialog';
 import { 
   Users, 
-  UserPlus, 
-  Shield, 
+  UserPlus,  
   Settings,
   Trash2,
   Edit,
@@ -161,12 +160,12 @@ const AdminPage = () => {
     toast.success('Пользователь удалён');
   };
 
-  const handleChangeRole = (userId: string, newRole: UserRole) => {
-    setUsers(users.map(u => 
-      u.id === userId ? { ...u, role: newRole } : u
-    ));
-    toast.success('Роль изменена');
-  };
+//   const handleChangeRole = (userId: string, newRole: UserRole) => {
+//     setUsers(users.map(u => 
+//       u.id === userId ? { ...u, role: newRole } : u
+//     ));
+//     toast.success('Роль изменена');
+//   };
 
   // Получение badge для роли
   const getRoleBadge = (role: UserRole) => {

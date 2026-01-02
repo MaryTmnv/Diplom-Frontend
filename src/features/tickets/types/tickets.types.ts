@@ -1,4 +1,5 @@
-import { PaginatedResponse, DateRangeFilter } from '@/shared/types/api.types';
+import type { Template } from '@/features/templates/types/template.types';
+import type { PaginatedResponse, DateRangeFilter } from '@/shared/types/api.types';
 
 // ========== ENUMS (UPPERCASE как на бэкенде) ==========
 
@@ -24,6 +25,7 @@ export enum TicketCategory {
   MOBILE_APP = 'MOBILE_APP',
   PAYMENTS = 'PAYMENTS',
   SECURITY = 'SECURITY',
+  ACCOUNTS = 'ACCOUNTS',
   OTHER = 'OTHER',
 }
 
@@ -57,8 +59,8 @@ export interface Ticket {
     avatar?: string | null;
     clientProfile?: {
       isVip: boolean;
-      totalTickets: number;     
-      resolvedTickets: number;   
+      totalTickets: number;
+      resolvedTickets: number;
     };
   };
   operatorId?: string | null;
@@ -80,6 +82,19 @@ export interface Ticket {
   closedAt?: string | null;
   contextData?: Record<string, any> | null;
   unreadCount?: number;
+
+  // ========== ДОПОЛНИТЕЛЬНЫЕ ПОЛЯ ДЛЯ ДЕТАЛЬНОЙ СТРАНИЦЫ ==========
+  messages?: Message[];
+  history?: TicketEvent[];
+  attachments?: Attachment[];
+  internalNotes?: InternalNote[];
+
+  // ========== УМНЫЕ ПОДСКАЗКИ ==========
+  suggestions?: {
+    similarTickets?: Ticket[];
+    articles?: Article[];
+    templates?: Template[];
+  };
 }
 
 export interface Message {
@@ -159,19 +174,25 @@ export interface TicketDetail extends Ticket {
   events: TicketEvent[];
   rating?: TicketRating | null;
   suggestions?: {
-    similarTickets: Ticket[];
-    articles: Article[];
+    similarTickets?: Ticket[];
+    articles?: Article[];
+    templates?: Template[];
   };
 }
 
 // Временный тип Article (создадим позже в knowledge-base)
-interface Article {
+export interface Article {
   id: string;
   title: string;
   slug: string;
   excerpt: string;
   category: string;
   readingTime: number;
+  views?: number;
+  helpfulCount?: number;
+  notHelpfulCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // ========== DTO ==========
@@ -219,6 +240,12 @@ export interface RateTicketDto {
   likedCompleteness?: boolean;
 }
 
+export interface SendMessageDto {
+  content: string;
+  attachmentIds?: string[];
+  isInternal?: boolean;
+}
+
 // ========== FILTERS ==========
 
 export interface TicketFilters extends DateRangeFilter {
@@ -240,3 +267,25 @@ export interface QueueFilters {
 // ========== RESPONSES ==========
 
 export type TicketsResponse = PaginatedResponse<Ticket>;
+export type TicketDetailResponse = TicketDetail;
+
+// ========== DEVICE INFO ==========
+
+export interface DeviceInfo {
+  userAgent: string;
+  platform: string;
+  screenResolution: string;
+  language: string;
+  browser?: string;
+  os?: string;
+}
+
+// ========== HELPER TYPES ==========
+
+export type TicketStatusColor = {
+  [key in TicketStatus]: string;
+};
+
+export type TicketPriorityColor = {
+  [key in TicketPriority]: string;
+};

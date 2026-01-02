@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 export const useNotifications = () => {
   const queryClient = useQueryClient();
   const { token } = useAuthStore(); // ← Используем token вместо accessToken
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [__, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 

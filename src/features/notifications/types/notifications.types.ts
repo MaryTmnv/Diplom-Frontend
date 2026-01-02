@@ -3,8 +3,10 @@ export enum NotificationType {
   TICKET_UPDATED = 'TICKET_UPDATED',
   TICKET_ASSIGNED = 'TICKET_ASSIGNED',
   TICKET_RESOLVED = 'TICKET_RESOLVED',
+  TICKET_CLOSED = 'TICKET_CLOSED',
   NEW_MESSAGE = 'NEW_MESSAGE',
   MENTION = 'MENTION',
+  SYSTEM = 'SYSTEM',
 }
 
 export interface Notification {
@@ -13,11 +15,11 @@ export interface Notification {
   type: NotificationType;
   title: string;
   message: string;
-  entityId?: string | null;
-  entityType?: string | null;
+  entityType?: 'ticket' | 'message' | 'user';
+  entityId?: string;
   isRead: boolean;
-  readAt?: string | null;
   createdAt: string;
+  readAt?: string;
 }
 
 export interface NotificationsResponse {

@@ -4,7 +4,7 @@ interface TicketsChartProps {
   period: string;
 }
 
-// Mock данные
+
 const data = [
   { date: 'Пн', new: 12, resolved: 8, inProgress: 15 },
   { date: 'Вт', new: 19, resolved: 15, inProgress: 18 },
@@ -15,7 +15,7 @@ const data = [
   { date: 'Вс', new: 5, resolved: 8, inProgress: 7 },
 ];
 
-export const TicketsChart = ({ period }: TicketsChartProps) => {
+export const TicketsChart = ({}: TicketsChartProps) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>

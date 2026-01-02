@@ -3,7 +3,7 @@ import { getCategoryLabel, getCategoryIcon } from '../utils/articleHelpers';
 import { Breadcrumbs } from '@/shared/components/Navigation';
 
 import { useRateArticle } from '../hooks/useArticleDetail';
-import { Eye, Clock, ThumbsUp, ThumbsDown, Share2 } from 'lucide-react';
+import { Eye, Clock, ThumbsUp, ThumbsDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { formatDate } from '@/shared/lib/utils/formatters';

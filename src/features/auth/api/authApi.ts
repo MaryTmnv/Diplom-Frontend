@@ -5,8 +5,6 @@ import {
   AuthResponse,
 } from '../types/auth.types';
 import { UserType } from '@/shared/types/user.types';
-import { useAuthStore } from '../store/authStore';
-import toast from 'react-hot-toast';
 
 export const authApi = {
   // Вход

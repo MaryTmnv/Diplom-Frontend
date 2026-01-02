@@ -34,7 +34,7 @@ export const CategoryDistribution = () => {
           cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
         />
         <Bar dataKey="count" name="Заявок" radius={[8, 8, 0, 0]}>
-          {data.map((entry, index) => (
+          {data.map((___, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Bar>

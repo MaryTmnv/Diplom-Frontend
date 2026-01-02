@@ -8,7 +8,7 @@ import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { getCategoryLabel, getCategoryIcon } from '@/features/tickets/utils/ticketHelpers';
 import { formatDate } from '@/shared/lib/utils/formatters';
-import { ArrowLeft, User, Calendar, Tag, FileText, BookOpen, CheckCircle, Download, FileIcon, HelpCircle, Info, MessageCircle, Paperclip, Star } from 'lucide-react';
+import { ArrowLeft, Calendar, Tag, FileText, BookOpen, CheckCircle, Download, FileIcon, HelpCircle, Info, MessageCircle, Paperclip, Star } from 'lucide-react';
 import { Button, Card, CardHeader, CardTitle, CardContent } from '@/shared/ui';
 import { TicketStatus } from '@/features/tickets/types/tickets.types';
 
