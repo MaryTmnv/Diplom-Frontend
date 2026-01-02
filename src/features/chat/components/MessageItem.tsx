@@ -74,7 +74,7 @@ export const MessageItem = ({
               {message.attachments.map((file) => (
                 <a
                   key={file.id}
-                  href={`http://localhost:3000${file.url}`}
+                  href={`https://diplom-backend-0df6.onrender.com${file.url}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={cn(

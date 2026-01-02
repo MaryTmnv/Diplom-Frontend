@@ -17,8 +17,8 @@ function getNumberEnvVar(key: string, defaultValue: number): number {
 
 export const env = {
   // API
-  apiUrl: getEnvVar('VITE_API_URL', 'http://localhost:3000/api'),
-  wsUrl: getEnvVar('VITE_WS_URL', 'http://localhost:3000'),
+  apiUrl: getEnvVar('VITE_API_URL', 'https://diplom-backend-0df6.onrender.com/api'),
+  wsUrl: getEnvVar('VITE_WS_URL', 'https://diplom-backend-0df6.onrender.com'),
 
   // App
   appName: getEnvVar('VITE_APP_NAME', 'HelpMate'),

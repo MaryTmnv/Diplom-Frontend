@@ -288,7 +288,7 @@ export const TicketWorkspacePage = () => {
             {ticket.attachments.map((file) => (
               <a
                 key={file.id}
-                href={`http://localhost:3000${file.url}`}
+                href={`http://:3000${file.url}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-3 bg-[#caf0f8]/20 hover:bg-[#ade8f4]/40 rounded-xl transition-all group"

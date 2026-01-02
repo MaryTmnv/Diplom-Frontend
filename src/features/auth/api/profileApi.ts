@@ -31,7 +31,7 @@ export const profileApi = {
 
     const token = localStorage.getItem('auth_token');
     
-    const response = await fetch('http://localhost:3000/api/files/upload', {
+    const response = await fetch('https://diplom-backend-0df6.onrender.com/api/files/upload', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
