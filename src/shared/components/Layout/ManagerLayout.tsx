@@ -26,11 +26,7 @@ export const ManagerLayout = () => {
       href: '/manager/team',
       icon: Users,
     },
-    {
-      label: 'Отчёты',
-      href: '/manager/reports',
-      icon: FileBarChart,
-    },
+ 
   ];
 
   // Если ADMIN - добавляем дополнительный пункт
