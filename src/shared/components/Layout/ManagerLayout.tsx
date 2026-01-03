@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { useState } from 'react';
-import { BarChart3, Users, FileBarChart, Shield } from 'lucide-react';
+import { BarChart3, Users, Shield } from 'lucide-react';
 import { Header } from './Header';
 import { Sidebar, NavItem } from './Sidebar';
 import { useAuthStore } from '@/features/auth/store/authStore';
