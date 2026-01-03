@@ -1,44 +1,76 @@
-import { api } from '@/shared/lib/api/apiClient';
-import {
-  Template,
+import { apiClient } from '@/shared/lib/api/apiClient';
+import type { 
+  Template, 
+  TemplateFilters, 
   TemplatesResponse,
-  TemplateFilters,
   UseTemplateDto,
   UseTemplateResponse,
 } from '../types/template.types';
 
 export const templatesApi = {
-  // Список шаблонов
+  /**
+   * Получить список шаблонов с фильтрацией и пагинацией
+   */
   getTemplates: async (filters?: TemplateFilters): Promise<TemplatesResponse> => {
     const params = new URLSearchParams();
-
+    
     if (filters?.category) params.append('category', filters.category);
     if (filters?.search) params.append('search', filters.search);
-    if (filters?.activeOnly !== undefined) params.append('activeOnly', filters.activeOnly.toString());
+    if (filters?.activeOnly !== undefined) params.append('activeOnly', String(filters.activeOnly));
     if (filters?.sortBy) params.append('sortBy', filters.sortBy);
-    if (filters?.page) params.append('page', filters.page.toString());
-    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.page) params.append('page', String(filters.page));
+    if (filters?.limit) params.append('limit', String(filters.limit));
 
-    return api.get<TemplatesResponse>(`/templates?${params.toString()}`);
+    const query = params.toString();
+    const url = `/templates${query ? `?${query}` : ''}`;
+
+    const response = await apiClient.get<TemplatesResponse>(url);
+    return response.data;
   },
 
-  // Шаблоны по категории
-  getTemplatesByCategory: async (category: string): Promise<Template[]> => {
-    return api.get<Template[]>(`/templates/category/${category}`);
-  },
-
-  // Популярные шаблоны
+  /**
+   * Получить популярные шаблоны (без пагинации)
+   */
   getPopularTemplates: async (limit: number = 5): Promise<Template[]> => {
-    return api.get<Template[]>(`/templates/popular?limit=${limit}`);
+    const response = await apiClient.get<Template[]>(`/templates/popular?limit=${limit}`);
+    return response.data;
   },
 
-  // Использовать шаблон (подставить переменные)
+  /**
+   * Получить шаблоны по категории
+   */
+  getTemplatesByCategory: async (category: string): Promise<Template[]> => {
+    const response = await apiClient.get<Template[]>(`/templates/category/${category}`);
+    return response.data;
+  },
+
+  /**
+   * Получить шаблон по ID
+   */
+  getTemplateById: async (id: string): Promise<Template> => {
+    const response = await apiClient.get<Template>(`/templates/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Использовать шаблон с подстановкой переменных
+   */
   useTemplate: async (id: string, data: UseTemplateDto): Promise<UseTemplateResponse> => {
-    return api.post<UseTemplateResponse>(`/templates/${id}/use`, data);
+    const response = await apiClient.post<UseTemplateResponse>(`/templates/${id}/use`, data);
+    return response.data;
   },
 
-  // Оценить шаблон
-  rateTemplate: async (id: string, rating: number): Promise<{ templateId: string; newRating: number }> => {
-    return api.post(`/templates/${id}/rate`, { rating });
+  /**
+   * Увеличить счётчик использования (простой вариант)
+   */
+  incrementUsage: async (id: string): Promise<void> => {
+    await apiClient.post(`/templates/${id}/increment-usage`);
+  },
+
+  /**
+   * Оценить шаблон
+   */
+  rateTemplate: async (id: string, rating: number): Promise<void> => {
+    await apiClient.post<void>(`/templates/${id}/rate`, { rating });
   },
 };

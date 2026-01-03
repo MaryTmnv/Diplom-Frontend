@@ -8,9 +8,10 @@ export interface Template {
   category: TicketCategory;
   usageCount: number;
   rating: number; // 0-5
-  variables: string[]; // Например: ['name', 'ticketNumber', 'action']
+  variables?: string[]; // Например: ['name', 'ticketNumber', 'action']
   isActive: boolean;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface TemplateFilters {
@@ -33,6 +34,10 @@ export interface UseTemplateResponse {
   originalContent: string;
   variables: string[];
   usedVariables: Record<string, string>;
+}
+
+export interface RateTemplateDto {
+  rating: number; // 1-5
 }
 
 export type TemplatesResponse = PaginatedResponse<Template>;

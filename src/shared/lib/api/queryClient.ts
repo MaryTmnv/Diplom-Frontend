@@ -5,75 +5,72 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60000, // 1 минута
-      gcTime: 5 * 60 * 1000, // 5 минут (новое название для cacheTime)
       retry: 1,
       refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
     },
     mutations: {
-      retry: 0,
       onError: (error: any) => {
-        // Глобальная обработка ошибок мутаций
-        const message = error?.response?.data?.message || 'Произошла ошибка';
-        
-        // Не показываем toast для 401 (это обработает interceptor)
-        if (error?.response?.status !== 401) {
-          toast.error(message);
-        }
+        const message = error.response?.data?.message || 'Произошла ошибка';
+        toast.error(message);
       },
     },
   },
 });
 
-// Утилиты для работы с кэшем
+// Query Keys для типизации и переиспользования
 export const queryKeys = {
   // Auth
   auth: {
-    user: ['auth', 'user'] as const,
-    session: ['auth', 'session'] as const,
+    all: ['auth'] as const,
+    me: () => [...queryKeys.auth.all, 'me'] as const,
   },
-  
+
   // Tickets
   tickets: {
     all: ['tickets'] as const,
-    list: (filters?: unknown) => ['tickets', 'list', filters] as const,
-    detail: (id: string) => ['tickets', 'detail', id] as const,
-    history: (id: string) => ['tickets', 'history', id] as const,
-    queue: ['tickets', 'queue'] as const,  // ← добавили
-    myActive: ['tickets', 'my-active'] as const,  // ← добавили
+    list: (filters?: any) => [...queryKeys.tickets.all, 'list', filters] as const,
+    detail: (id: string) => [...queryKeys.tickets.all, 'detail', id] as const,
+    myTickets: () => [...queryKeys.tickets.all, 'my'] as const,
+    queue: (filters?: any) => [...queryKeys.tickets.all, 'queue', filters] as const,
   },
 
   // Messages
   messages: {
     all: ['messages'] as const,
-    list: (ticketId: string) => ['messages', 'list', ticketId] as const,
-  },
-
-  // Notifications - ДОБАВЛЕНО
-  notifications: {
-    all: ['notifications'] as const,
-    list: (filters?: unknown) => ['notifications', 'list', filters] as const,
-    unreadCount: ['notifications', 'unread-count'] as const,
-  },
-
-  // Articles
-  articles: {
-    all: ['articles'] as const,
-    list: (filters?: unknown) => ['articles', 'list', filters] as const,
-    detail: (id: string) => ['articles', 'detail', id] as const,
-    search: (query: string) => ['articles', 'search', query] as const,
-    popular: ['articles', 'popular'] as const,
+    list: (ticketId: string) => [...queryKeys.messages.all, 'list', ticketId] as const,
   },
 
   // Templates
   templates: {
     all: ['templates'] as const,
-    list: (filters?: unknown) => ['templates', 'list', filters] as const,
+    list: (filters?: any) => [...queryKeys.templates.all, 'list', filters] as const,
+    detail: (id: string) => [...queryKeys.templates.all, 'detail', id] as const,
+    popular: (limit: number) => [...queryKeys.templates.all, 'popular', limit] as const,
+    byCategory: (category: string) => [...queryKeys.templates.all, 'category', category] as const,
+  },
+
+  // Knowledge Base (Articles)
+  articles: {
+    all: ['articles'] as const,
+    list: (filters?: any) => [...queryKeys.articles.all, 'list', filters] as const,
+    detail: (id: string) => [...queryKeys.articles.all, 'detail', id] as const,
+    search: (query: string) => [...queryKeys.articles.all, 'search', query] as const,
+    popular: (limit: number) => [...queryKeys.articles.all, 'popular', limit] as const,
   },
 
   // Analytics
   analytics: {
-    overview: (period: string) => ['analytics', 'overview', period] as const,
-    performance: (period: string) => ['analytics', 'performance', period] as const,
+    all: ['analytics'] as const,
+    overview: (period: string) => [...queryKeys.analytics.all, 'overview', period] as const,
+    performance: (period: string) => [...queryKeys.analytics.all, 'performance', period] as const,
+    topIssues: (period: string, limit?: number) => 
+      [...queryKeys.analytics.all, 'top-issues', period, limit] as const,
   },
-} as const;
+
+  // Notifications
+  notifications: {
+    all: ['notifications'] as const,
+    list: () => [...queryKeys.notifications.all, 'list'] as const,
+    unreadCount: () => [...queryKeys.notifications.all, 'unread-count'] as const,
+  },
+};
