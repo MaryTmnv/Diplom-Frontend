@@ -62,8 +62,7 @@ export const ticketsApi = {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
-    const query = params.toString();
-    const url = `/tickets/my${query ? `?${query}` : ''}`;
+    const url = `/tickets/my-active`;
 
     const response = await apiClient.get<PaginatedResponse<Ticket>>(url);
     return response.data;
