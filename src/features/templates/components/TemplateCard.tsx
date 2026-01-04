@@ -62,25 +62,26 @@ export const TemplateCard = ({ template, onUse, compact = false }: TemplateCardP
   )}
 
   {/* Переменные */}
-  {template.variables.length > 0 && (
-    <div className="mb-4 relative z-10">
-      <p className="text-xs font-semibold text-[#023e8a]/60 mb-2 flex items-center gap-1.5">
-        <Code className="w-3 h-3" />
-        Переменные
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {template.variables.map((variable) => (
-          <Badge 
-            key={variable}
-            className="text-xs font-mono bg-[#90e0ef]/30 text-[#0077b6] border border-[#48cae4]/30 hover:bg-[#ade8f4]/50 transition-colors px-2.5 py-1 rounded-lg"
-          >
-            <Hash className="w-3 h-3 mr-1" />
-            {variable}
-          </Badge>
-        ))}
+    {template.variables && template.variables.length > 0 && (
+      <div className="mb-4 relative z-10">
+        <p className="text-xs font-semibold text-[#023e8a]/60 mb-2 flex items-center gap-1.5">
+          <Code className="w-3 h-3" />
+          Переменные
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {template.variables.map((variable: string) => (
+            <Badge 
+              key={variable}
+              className="text-xs font-mono bg-[#90e0ef]/30 text-[#0077b6] border border-[#48cae4]/30 hover:bg-[#ade8f4]/50 transition-colors px-2.5 py-1 rounded-lg"
+            >
+              <Hash className="w-3 h-3 mr-1" />
+              {variable}
+            </Badge>
+          ))}
+        </div>
       </div>
-    </div>
-  )}
+    )}
+
 
   {/* Footer */}
   <div className="flex items-center justify-between gap-4 pt-4 border-t border-[#90e0ef]/30 relative z-10">

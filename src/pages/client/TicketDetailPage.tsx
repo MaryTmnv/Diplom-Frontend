@@ -10,11 +10,13 @@ import { getCategoryLabel, getCategoryIcon } from '@/features/tickets/utils/tick
 import { formatDate } from '@/shared/lib/utils/formatters';
 import { ArrowLeft, Calendar, Tag, FileText, BookOpen, CheckCircle, Download, FileIcon, HelpCircle, Info, MessageCircle, Paperclip, Star } from 'lucide-react';
 import { Button, Card, CardHeader, CardTitle, CardContent } from '@/shared/ui';
-import { TicketStatus } from '@/features/tickets/types/tickets.types';
+import { Attachment, TicketStatus } from '@/features/tickets/types/tickets.types';
+import { useAuthStore } from '@/features/auth/store/authStore';
 
 export const TicketDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const currentUserId = useAuthStore((state) => state.user?.id || '');
 
   const { data: ticket, isLoading, error } = useTicketDetail(id!);
 
@@ -112,9 +114,10 @@ export const TicketDetailPage = () => {
         </CardHeader>
         <ChatWindow 
           ticketId={ticket.id} 
+          currentUserId={currentUserId || ''} 
           ticketNumber={ticket.number}
           ticketCategory={ticket.category}
-          className="h-[600px]"
+          className="h-[calc(100%-4rem)]"
         />
       </Card>
     </div>
@@ -228,25 +231,26 @@ export const TicketDetailPage = () => {
               </CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-2 pt-2">
-            {ticket.attachments.map((file) => (
-              <a
-                key={file.id}
-                href={`https://diplom-backend-0df6.onrender.com${file.url}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 bg-[#caf0f8]/20 hover:bg-[#ade8f4]/40 rounded-xl transition-all group"
-              >
-                <div className="w-10 h-10 bg-[#90e0ef]/50 rounded-xl flex items-center justify-center group-hover:bg-[#0077b6] transition-colors">
-                  <FileIcon className="w-5 h-5 text-[#0077b6] group-hover:text-white transition-colors" />
-                </div>
-                <span className="text-sm text-[#03045e] truncate flex-1 font-medium">
-                  {file.fileName}
-                </span>
-                <Download className="w-4 h-4 text-[#023e8a]/40 group-hover:text-[#0077b6] transition-colors" />
-              </a>
-            ))}
-          </CardContent>
+         <CardContent className="space-y-2 pt-2">
+          {ticket.attachments.map((file: Attachment) => ( // ← Типизировали!
+            <a
+              key={file.id}
+              href={`https://diplom-backend-0df6.onrender.com${file.url}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 bg-[#caf0f8]/20 hover:bg-[#ade8f4]/40 rounded-xl transition-all group"
+            >
+              <div className="w-10 h-10 bg-[#90e0ef]/50 rounded-xl flex items-center justify-center group-hover:bg-[#0077b6] transition-colors">
+                <FileIcon className="w-5 h-5 text-[#0077b6] group-hover:text-white transition-colors" />
+              </div>
+              <span className="text-sm text-[#03045e] truncate flex-1 font-medium">
+                {file.fileName}
+              </span>
+              <Download className="w-4 h-4 text-[#023e8a]/40 group-hover:text-[#0077b6] transition-colors" />
+            </a>
+          ))}
+        </CardContent>
+
         </Card>
       )}
 

@@ -1,14 +1,16 @@
-import { api } from '@/shared/lib/api/apiClient';
-import {
-  Article,
-  ArticleDetail,
-  ArticlesResponse,
+import { api as apiClient } from '@/shared/lib/api/apiClient';
+import type { 
+  Article, 
+  ArticleDetail, 
   ArticleFilters,
-  CategoryStats,
+  ArticlesResponse,
+  CategoryStats 
 } from '../types/article.types';
 
 export const articlesApi = {
-  // Список статей
+  /**
+   * Получить список статей
+   */
   getArticles: async (filters?: ArticleFilters): Promise<ArticlesResponse> => {
     const params = new URLSearchParams();
 
@@ -18,36 +20,67 @@ export const articlesApi = {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
-    return api.get<ArticlesResponse>(`/articles?${params.toString()}`);
+    const query = params.toString();
+    const url = `/articles${query ? `?${query}` : ''}`;
+
+    const response = await apiClient.get<ArticlesResponse>(url);
+    return response.data; // ← Важно! Возвращаем response.data
   },
 
-  // Статья по slug
+  /**
+   * Получить статью по slug
+   */
   getArticleBySlug: async (slug: string): Promise<ArticleDetail> => {
-    return api.get<ArticleDetail>(`/articles/${slug}`);
+    const response = await apiClient.get<ArticleDetail>(`/articles/${slug}`);
+    return response.data; // ← Важно!
   },
 
-  // Поиск статей
+  /**
+   * Поиск статей
+   */
   searchArticles: async (query: string): Promise<Article[]> => {
-    return api.get<Article[]>(`/articles/search?q=${encodeURIComponent(query)}`);
+    const response = await apiClient.get<Article[]>(
+      `/articles/search?q=${encodeURIComponent(query)}`
+    );
+    return response.data; // ← Важно!
   },
 
-  // Популярные статьи
+  /**
+   * Получить популярные статьи
+   */
   getPopularArticles: async (limit: number = 6): Promise<Article[]> => {
-    return api.get<Article[]>(`/articles/popular?limit=${limit}`);
+    const response = await apiClient.get<Article[]>(`/articles/popular?limit=${limit}`);
+    return response.data; // ← Важно!
   },
 
-  // Статьи по категории
+  /**
+   * Получить статьи по категории
+   */
   getArticlesByCategory: async (category: string): Promise<Article[]> => {
-    return api.get<Article[]>(`/articles/category/${category}`);
+    const response = await apiClient.get<Article[]>(`/articles/category/${category}`);
+    return response.data; // ← Важно!
   },
 
-  // Статистика по категориям
+  /**
+   * Получить статистику по категориям
+   */
   getCategoryStats: async (): Promise<CategoryStats[]> => {
-    return api.get<CategoryStats[]>('/articles/categories');
+    const response = await apiClient.get<CategoryStats[]>('/articles/categories');
+    return response.data; // ← Важно!
   },
 
-  // Оценить статью
+  /**
+   * Оценить статью (полезна/не полезна)
+   */
   rateArticle: async (id: string, helpful: boolean): Promise<void> => {
-    return api.post<void>(`/articles/${id}/rate`, { helpful });
+    await apiClient.post(`/articles/${id}/rate`, { helpful });
+    // Для void не нужно возвращать response.data
+  },
+
+  /**
+   * Увеличить счетчик просмотров
+   */
+  incrementViews: async (id: string): Promise<void> => {
+    await apiClient.post(`/articles/${id}/views`);
   },
 };

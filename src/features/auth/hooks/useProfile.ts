@@ -12,7 +12,7 @@ export const useUpdateProfile = () => {
     mutationFn: (data: UpdateProfileDto) => profileApi.updateProfile(user!.id, data),
     onSuccess: (updatedUser) => {
       setUser(updatedUser);
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.user });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
       toast.success('Профиль обновлён');
     },
     onError: (error: any) => {
@@ -56,7 +56,7 @@ export const useUploadAvatar = () => {
     },
     onSuccess: (updatedUser) => {
       setUser(updatedUser);
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.user });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
       toast.success('Аватар обновлён');
     },
     onError: () => {

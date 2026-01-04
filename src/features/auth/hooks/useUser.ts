@@ -9,7 +9,7 @@ export const useUser = () => {
   const { isAuthenticated, setUser } = useAuthStore();
 
   const { data: user, isLoading, error } = useQuery<UserType>({
-    queryKey: queryKeys.auth.user,
+    queryKey: queryKeys.auth.all,
     queryFn: authApi.getCurrentUser,
     enabled: isAuthenticated, // Запрашиваем только если авторизован
     staleTime: 5 * 60 * 1000, // 5 минут

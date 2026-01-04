@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 
 export const useNotifications = () => {
   const queryClient = useQueryClient();
-  const { token } = useAuthStore(); // ← Используем token вместо accessToken
+  const { accessToken } = useAuthStore();
   const [__, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -19,14 +19,14 @@ export const useNotifications = () => {
   const { data: notificationsResponse } = useQuery({
     queryKey: queryKeys.notifications.all,
     queryFn: () => notificationsApi.getNotifications({ limit: 50 }),
-    enabled: !!token,
+    enabled: !!accessToken,
   });
 
   // Подключение к WebSocket
   useEffect(() => {
-    if (!token) return;
+    if (!accessToken) return;
 
-    const notifSocket = initNotificationsSocket(token);
+    const notifSocket = initNotificationsSocket(accessToken);
     setSocket(notifSocket);
 
     // ========== ОБРАБОТЧИКИ СОБЫТИЙ ==========
@@ -104,7 +104,7 @@ export const useNotifications = () => {
     return () => {
       notifSocket.disconnect();
     };
-  }, [token, queryClient]);
+  }, [accessToken, queryClient]);
 
   // ========== MUTATIONS ==========
 

@@ -31,8 +31,10 @@ export const queryKeys = {
     list: (filters?: any) => [...queryKeys.tickets.all, 'list', filters] as const,
     detail: (id: string) => [...queryKeys.tickets.all, 'detail', id] as const,
     myTickets: () => [...queryKeys.tickets.all, 'my'] as const,
+    myActive: () => [...queryKeys.tickets.all, 'my-active'] as const, // ← Добавили!
     queue: (filters?: any) => [...queryKeys.tickets.all, 'queue', filters] as const,
   },
+
 
   // Messages
   messages: {
@@ -57,6 +59,14 @@ export const queryKeys = {
     search: (query: string) => [...queryKeys.articles.all, 'search', query] as const,
     popular: (limit: number) => [...queryKeys.articles.all, 'popular', limit] as const,
   },
+
+  // Chat
+  chat: {
+    all: ['chat'] as const,
+    messages: (ticketId: string) => [...queryKeys.chat.all, 'messages', ticketId] as const,
+    unreadCount: (ticketId: string) => [...queryKeys.chat.all, 'unread', ticketId] as const,
+  },
+
 
   // Analytics
   analytics: {

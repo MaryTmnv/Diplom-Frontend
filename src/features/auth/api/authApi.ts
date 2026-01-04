@@ -1,45 +1,82 @@
-import { api, apiClient } from '@/shared/lib/api/apiClient';
-import {
-  LoginDto,
-  RegisterDto,
-  AuthResponse,
-} from '../types/auth.types';
-import { UserType } from '@/shared/types/user.types';
+import { api } from '@/shared/lib/api/apiClient';
+import type { User } from '@/shared/types/user.types';
+
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
+export interface RegisterDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  accessToken: string;
+}
+
+export interface TokenResponse {
+  accessToken: string;
+}
 
 export const authApi = {
-  // Вход
+  /**
+   * Вход в систему
+   */
   login: async (credentials: LoginDto): Promise<AuthResponse> => {
-    return api.post<AuthResponse>('/auth/login', credentials);
+    const response = await api.post<AuthResponse>('/auth/login', credentials);
+    return response.data;
   },
 
-  // Регистрация
+  /**
+   * Регистрация
+   */
   register: async (data: RegisterDto): Promise<AuthResponse> => {
-    const { confirmPassword, ...registerData } = data as any;
-    return api.post<AuthResponse>('/auth/register', registerData);
+    const response = await api.post<AuthResponse>('/auth/register', data);
+    return response.data;
   },
 
-  // Выход
+  /**
+   * Выход
+   */
   logout: async (): Promise<void> => {
-    return api.post<void>('/auth/logout');
+    await api.post('/auth/logout');
   },
 
-  // Получение текущего пользователя
-  getCurrentUser: async (): Promise<UserType> => {
-    return api.get<UserType>('/auth/me');
+  /**
+   * Обновление токена
+   */
+  refreshToken: async (): Promise<TokenResponse> => {
+    const response = await api.post<TokenResponse>('/auth/refresh', {}, {
+      withCredentials: true,
+    });
+    return response.data;
   },
 
-  // Забыли пароль
+  /**
+   * Получить текущего пользователя
+   */
+  getCurrentUser: async (): Promise<User> => {
+    const response = await api.get<User>('/auth/me');
+    return response.data;
+  },
+
+  /**
+   * Восстановление пароля
+   */
   forgotPassword: async (email: string): Promise<void> => {
-    return api.post<void>('/auth/forgot-password', { email });
+    await api.post('/auth/forgot-password', { email });
   },
 
-  // Сброс пароля
+  /**
+   * Сброс пароля
+   */
   resetPassword: async (token: string, password: string): Promise<void> => {
-    return api.post<void>('/auth/reset-password', { token, password });
+    await api.post('/auth/reset-password', { token, password });
   },
-  refreshToken: async (): Promise<string> => {
-    const response = await apiClient.post<{ accessToken: string }>('/auth/refresh');
-    return response.data.accessToken;
-  },
-  
 };

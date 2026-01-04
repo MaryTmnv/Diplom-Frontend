@@ -65,9 +65,9 @@ export const useAuth = () => {
 
   // Get current user
   const { data: user, isLoading: isLoadingUser } = useQuery({
-    queryKey: queryKeys.auth.user,
+    queryKey: queryKeys.auth.all,
     queryFn: authApi.getCurrentUser,
-    enabled: !!useAuthStore.getState().token,
+    enabled: !!useAuthStore.getState().accessToken,
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 минут
   });

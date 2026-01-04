@@ -35,3 +35,5 @@ export interface UserType {
   clientProfile?: ClientProfile;
   operatorStats?: OperatorStats;
 }
+
+export type User = UserType;

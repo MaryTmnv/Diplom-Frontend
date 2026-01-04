@@ -1,94 +1,139 @@
 import { useChat } from '../hooks/useChat';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
-import { TypingIndicator } from './TypingIndicator';
-import { Wifi, WifiOff, Users } from 'lucide-react';
+import { chatApi } from '../api/chatApi';
+import toast from 'react-hot-toast';
+import { Wifi, WifiOff, Hash } from 'lucide-react';
+import { getCategoryLabel, getCategoryIcon } from '@/features/tickets/utils/ticketHelpers';
+import type { TicketCategory } from '@/features/tickets/types/tickets.types';
 import { cn } from '@/shared/lib/utils/cn';
-import { Card } from '@/shared/ui';
 
 interface ChatWindowProps {
   ticketId: string;
-  ticketNumber?: string;
-  ticketCategory?: string;
-  className?: string;
+  currentUserId: string;
+  ticketNumber?: string; 
+  ticketCategory?: TicketCategory; 
+  className?: string; 
 }
 
 export const ChatWindow = ({ 
   ticketId, 
-  ticketNumber, 
+  currentUserId,
+  ticketNumber,
   ticketCategory,
-  className 
+  className,
 }: ChatWindowProps) => {
-  const {
-    messages,
-    isLoading,
-    isConnected,
+  const { 
+    messages, 
+    isLoading, 
+    isConnected, 
     typingUsers,
-    sendMessage,
+    sendMessage, 
+    isSending,
     emitTyping,
   } = useChat(ticketId);
 
+  const handleSendMessage = async (content: string, files?: File[]) => {
+    try {
+      // 1. Загружаем файлы (если есть)
+      let attachmentIds: string[] = [];
+      
+      if (files && files.length > 0) {
+        const uploadPromises = files.map((file) => chatApi.uploadAttachment(file));
+        const uploadedFiles = await Promise.all(uploadPromises);
+        attachmentIds = uploadedFiles.map((f) => f.id);
+      }
+
+      // 2. Отправляем сообщение с ID вложений
+      sendMessage({
+        content,
+        attachmentIds:  attachmentIds ? attachmentIds : undefined,
+      });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Ошибка отправки сообщения');
+    }
+  };
+
+  const CategoryIcon = ticketCategory ? getCategoryIcon(ticketCategory) : null;
+
   return (
-    <Card className={cn('flex flex-col overflow-hidden', className)}>
+    <div className={cn(
+      "flex flex-col bg-white rounded-2xl shadow-lg overflow-hidden border border-[#90e0ef]/30",
+      className
+    )}>
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-gray-50 to-white">
-        <div>
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <Users className="w-5 h-5 text-primary-600" />
-            Переписка
-          </h3>
-          {ticketNumber && (
-            <p className="text-xs text-gray-500 mt-0.5">
-              Заявка {ticketNumber}
-            </p>
-          )}
-        </div>
+      <div className="bg-gradient-to-r from-[#0077b6] to-[#023e8a] text-white px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h3 className="font-bold text-lg">Чат с клиентом</h3>
+              
+              {/* Номер заявки */}
+              {ticketNumber && (
+                <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-lg">
+                  <Hash className="w-3.5 h-3.5" />
+                  <span className="text-sm font-medium">{ticketNumber}</span>
+                </div>
+              )}
 
-        {/* Статус подключения */}
-        <div className={cn(
-          'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium',
-          isConnected 
-            ? 'bg-green-100 text-green-700' 
-            : 'bg-red-100 text-red-700'
-        )}>
-          {isConnected ? (
-            <>
-              <Wifi className="w-3.5 h-3.5" />
-              <span>Онлайн</span>
-            </>
-          ) : (
-            <>
-              <WifiOff className="w-3.5 h-3.5" />
-              <span>Оффлайн</span>
-            </>
-          )}
-        </div>
-      </div>
+              {/* Категория */}
+              {ticketCategory && CategoryIcon && (
+                <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-lg">
+                  <CategoryIcon/>
+                  <span className="text-sm">{getCategoryLabel(ticketCategory)}</span>
+                </div>
+              )}
+            </div>
 
-      {/* Список сообщений */}
-      <div className="flex-1 overflow-hidden bg-gradient-to-b from-gray-50 to-white">
-        <MessageList messages={messages} isLoading={isLoading} />
-
-        {/* Индикатор печати */}
-        {typingUsers.length > 0 && (
-          <div className="px-4 pb-2">
-            <TypingIndicator userName="Оператор" />
+            {/* Индикатор "печатает" */}
+            {typingUsers.length > 0 && (
+              <p className="text-xs text-white/70 mt-2 flex items-center gap-2">
+                <span className="flex gap-1">
+                  <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </span>
+                {typingUsers.join(', ')} печатает...
+              </p>
+            )}
           </div>
-        )}
+
+          {/* Статус подключения */}
+          <div className="flex items-center gap-2">
+            {isConnected ? (
+              <>
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <Wifi className="w-4 h-4 text-green-400" />
+                <span className="text-sm">Онлайн</span>
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 bg-red-400 rounded-full" />
+                <WifiOff className="w-4 h-4 text-red-400" />
+                <span className="text-sm">Офлайн</span>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Поле ввода */}
+      {/* Messages */}
+      <div className="flex-1 overflow-hidden">
+        <MessageList
+          messages={messages || []}
+          currentUserId={currentUserId}
+          isLoading={isLoading}
+        />
+      </div>
+
+      {/* Input */}
       <MessageInput
-        onSend={sendMessage}
+        onSend={handleSendMessage}
         onTyping={emitTyping}
+        isLoading={isSending}
         disabled={!isConnected}
-        ticketCategory={ticketCategory}
-        placeholder={
-          isConnected
-            ? 'Введите сообщение...'
-            : 'Подключение к чату...'
-        }
       />
-    </Card>
+    </div>
   );
 };

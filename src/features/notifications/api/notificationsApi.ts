@@ -1,8 +1,14 @@
-import { api } from '@/shared/lib/api/apiClient';
-import { NotificationFilters, NotificationsResponse } from '../types/notifications.types';
+import { api as apiClient } from '@/shared/lib/api/apiClient';
+import type { 
+  Notification,
+  NotificationFilters, 
+  NotificationsResponse 
+} from '../types/notifications.types';
 
 export const notificationsApi = {
-  // Список уведомлений
+  /**
+   * Получить список уведомлений
+   */
   getNotifications: async (filters?: NotificationFilters): Promise<NotificationsResponse> => {
     const params = new URLSearchParams();
 
@@ -11,31 +17,50 @@ export const notificationsApi = {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
-    return api.get<NotificationsResponse>(`/notifications?${params.toString()}`);
+    const query = params.toString();
+    const url = `/notifications${query ? `?${query}` : ''}`;
+
+    const response = await apiClient.get<NotificationsResponse>(url);
+    return response.data; // ← Важно!
   },
 
-  // Количество непрочитанных
+  /**
+   * Получить количество непрочитанных уведомлений
+   */
   getUnreadCount: async (): Promise<{ count: number }> => {
-    return api.get<{ count: number }>('/notifications/unread-count');
+    const response = await apiClient.get<{ count: number }>('/notifications/unread-count');
+    return response.data; // ← Важно!
   },
 
-  // Отметить как прочитанное
+  /**
+   * Отметить уведомление как прочитанное
+   */
   markAsRead: async (id: string): Promise<Notification> => {
-    return api.post<Notification>(`/notifications/${id}/read`);
+    const response = await apiClient.post<Notification>(`/notifications/${id}/read`);
+    return response.data; // ← Важно!
   },
 
-  // Отметить все как прочитанные
+  /**
+   * Отметить все уведомления как прочитанные
+   */
   markAllAsRead: async (): Promise<{ updated: number }> => {
-    return api.post<{ updated: number }>('/notifications/mark-all-read');
+    const response = await apiClient.post<{ updated: number }>('/notifications/mark-all-read');
+    return response.data; // ← Важно!
   },
 
-  // Удалить уведомление
+  /**
+   * Удалить уведомление
+   */
   deleteNotification: async (id: string): Promise<void> => {
-    return api.delete<void>(`/notifications/${id}`);
+    await apiClient.delete(`/notifications/${id}`);
+    // Для void не нужно возвращать response.data
   },
 
-  // Удалить все уведомления
+  /**
+   * Удалить все уведомления
+   */
   deleteAllNotifications: async (): Promise<{ deleted: number }> => {
-    return api.delete<{ deleted: number }>('/notifications');
+    const response = await apiClient.delete<{ deleted: number }>('/notifications');
+    return response.data; // ← Важно!
   },
 };

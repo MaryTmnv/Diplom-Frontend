@@ -3,24 +3,27 @@ import { X, Search, FileText, Loader2, Star } from 'lucide-react';
 import { Button, Input } from '@/shared/ui';
 import type { Template } from '../types/template.types';
 import { useTemplates } from '../hooks/useTemplate';
+import { TicketCategory } from '@/features/tickets/types/tickets.types';
 
 interface TemplateSelectorProps {
+  category?: TicketCategory; // ← Добавили category!
   onSelect: (template: Template) => void;
   onClose: () => void;
 }
 
-export const TemplateSelector = ({ onSelect, onClose }: TemplateSelectorProps) => {
+export const TemplateSelector = ({ onSelect, onClose ,category}: TemplateSelectorProps) => {
   const [search, setSearch] = useState('');
   
   // Используем хук с фильтрами
-  const { data, isLoading } = useTemplates({ 
+ const { data: templatesResponse, isLoading } = useTemplates({
+    category,
     search: search || undefined,
-    activeOnly: true,
     sortBy: 'popular',
-    limit: 50,
   });
 
-  const templates = data?.data || [];
+  
+
+  const templates = templatesResponse?.data || [];
 
   return (
     <>

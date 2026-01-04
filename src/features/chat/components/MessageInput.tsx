@@ -1,22 +1,12 @@
 import { useState, useRef, KeyboardEvent } from 'react';
-import { Send, Paperclip, FileText, X, Loader2 } from 'lucide-react';
-import { Button, Textarea } from '@/shared/ui';
-import { useAuthStore } from '@/features/auth/store/authStore';
-import { UserRole } from '@/shared/types/user.types';
+import { Button } from '@/shared/ui/Button';
+import { Paperclip, Send, X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { TemplateSelector } from '@/features/templates/components/TemplateSelector';
-
-// Тип для шаблона
-interface Template {
-  id: string;
-  title: string;
-  content: string;
-  category?: string;
-  usageCount?: number;
-}
+import type { Template } from '@/features/templates/types/template.types';
 
 interface MessageInputProps {
   onSend: (message: string, files?: File[]) => void;
+  onTyping?: () => void; // ← Добавили!
   isLoading?: boolean;
   placeholder?: string;
   disabled?: boolean;
@@ -25,31 +15,82 @@ interface MessageInputProps {
 
 export const MessageInput = ({
   onSend,
+  onTyping, // ← Добавили!
   isLoading = false,
   placeholder = 'Введите сообщение...',
   disabled = false,
-  onTemplateSelect,
 }: MessageInputProps) => {
   const [message, setMessage] = useState('');
   const [files, setFiles] = useState<File[]>([]);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  // Получаем роль пользователя с правильной типизацией
-  const { user } = useAuthStore();
-  const isOperator = 
-    user?.role === UserRole.OPERATOR || 
-    user?.role === UserRole.SPECIALIST ||
-    user?.role === UserRole.MANAGER;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSend = () => {
-    if (!message.trim() && files.length === 0) return;
-    if (disabled || isLoading) return;
+  // Автоувеличение высоты textarea
+  const adjustHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    }
+  };
 
-    onSend(message.trim(), files.length > 0 ? files : undefined);
-    setMessage('');
-    setFiles([]);
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+    adjustHeight();
+    
+    // Вызываем onTyping при вводе текста
+    if (onTyping && e.target.value.trim()) {
+      onTyping();
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    
+    // Валидация файлов
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'text/plain'];
+    
+    const validFiles = selectedFiles.filter((file) => {
+      if (file.size > maxSize) {
+        toast.error(`Файл "${file.name}" слишком большой (максимум 10MB)`);
+        return false;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`Тип файла "${file.name}" не поддерживается`);
+        return false;
+      }
+      return true;
+    });
+
+    setFiles((prev) => [...prev, ...validFiles]);
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSend = async () => {
+    if ((!message.trim() && files.length === 0) || isLoading || disabled) {
+      return;
+    }
+
+    try {
+      // Отправляем сообщение с файлами
+      onSend(message.trim(), files);
+      
+      // Очищаем поля
+      setMessage('');
+      setFiles([]);
+      
+      // Сбрасываем высоту textarea
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Ошибка отправки сообщения');
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -59,60 +100,23 @@ export const MessageInput = ({
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    const validFiles = selectedFiles.filter((file) => {
-      // Максимум 10MB
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error(`Файл ${file.name} слишком большой (макс. 10MB)`);
-        return false;
-      }
-      return true;
-    });
-
-    setFiles((prev) => [...prev, ...validFiles].slice(0, 5)); // Максимум 5 файлов
-  };
-
-  const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
   return (
-    <div className="border-t bg-gradient-to-b from-white to-gray-50 p-4">
-      {/* Toolbar - показываем только для операторов */}
-      {isOperator && (
-        <div className="flex items-center gap-2 mb-3">
-          {/* Кнопка шаблонов */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowTemplates(true)}
-            disabled={disabled}
-            className="gap-2 text-[#0077b6] hover:bg-[#caf0f8]/50"
-          >
-            <FileText className="w-4 h-4" />
-            <span className="text-xs hidden sm:inline">Шаблоны</span>
-          </Button>
-        </div>
-      )}
-
-      {/* Превью прикреплённых файлов */}
+    <div className="border-t border-[#90e0ef]/30 bg-white p-4">
+      {/* Превью файлов */}
       {files.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3">
+        <div className="mb-3 flex flex-wrap gap-2">
           {files.map((file, index) => (
             <div
               key={index}
-              className="flex items-center gap-2 bg-[#caf0f8] text-[#0077b6] px-3 py-1.5 rounded-lg text-sm"
+              className="flex items-center gap-2 bg-[#caf0f8]/30 text-[#023e8a] px-3 py-2 rounded-lg text-sm border border-[#90e0ef]/30"
             >
-              <Paperclip className="w-3 h-3" />
+              <Paperclip className="w-4 h-4" />
               <span className="max-w-[150px] truncate">{file.name}</span>
               <button
-                type="button"
                 onClick={() => removeFile(index)}
-                className="hover:bg-[#ade8f4] rounded p-0.5 transition-colors"
+                className="text-[#023e8a]/50 hover:text-red-500 transition-colors"
               >
-                <X className="w-3 h-3" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           ))}
@@ -121,51 +125,47 @@ export const MessageInput = ({
 
       {/* Поле ввода */}
       <div className="flex items-end gap-2">
-        {/* Textarea */}
         <div className="flex-1 relative">
-          <Textarea
+          <textarea
             ref={textareaRef}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={handleChange}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled || isLoading}
-            className="min-h-[44px] max-h-[200px] resize-none border-[#90e0ef]/30 focus:border-[#0077b6] focus:ring-[#0077b6]/20"
             rows={1}
+            className="w-full resize-none rounded-xl border border-[#90e0ef] bg-white px-4 py-3 pr-12 text-[#03045e] placeholder-[#023e8a]/40 focus:border-[#0077b6] focus:ring-2 focus:ring-[#0077b6]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ minHeight: '48px', maxHeight: '200px' }}
+          />
+          
+          {/* Кнопка прикрепления файла */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || isLoading}
+            className="absolute right-3 bottom-3 text-[#023e8a]/50 hover:text-[#0077b6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Paperclip className="w-5 h-5" />
+          </button>
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFileSelect}
+            className="hidden"
+            accept="image/jpeg,image/png,image/gif,application/pdf,text/plain"
           />
         </div>
 
-        {/* Кнопка прикрепления файлов */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={handleFileSelect}
-          accept="image/*,.pdf,.doc,.docx,.txt"
-        />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled || isLoading || files.length >= 5}
-          className="shrink-0 text-[#023e8a] hover:bg-[#caf0f8]/50 hover:text-[#0077b6]"
-          title="Прикрепить файл"
-        >
-          <Paperclip className="w-5 h-5" />
-        </Button>
-
         {/* Кнопка отправки */}
         <Button
-          type="button"
           onClick={handleSend}
-          disabled={disabled || isLoading || (!message.trim() && files.length === 0)}
-          className="shrink-0 bg-gradient-to-r from-[#0077b6] to-[#023e8a] hover:from-[#023e8a] hover:to-[#03045e]"
-          title="Отправить сообщение"
+          disabled={(!message.trim() && files.length === 0) || isLoading || disabled}
+          className="bg-gradient-to-r from-[#0077b6] to-[#023e8a] hover:from-[#0096c7] hover:to-[#0077b6] text-white rounded-xl px-4 py-3 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <Send className="w-5 h-5" />
           )}
@@ -173,23 +173,10 @@ export const MessageInput = ({
       </div>
 
       {/* Подсказка */}
-      <p className="text-xs text-[#023e8a]/60 mt-2">
-        <kbd className="px-1.5 py-0.5 bg-[#caf0f8]/30 rounded text-xs">Enter</kbd> для отправки,{' '}
-        <kbd className="px-1.5 py-0.5 bg-[#caf0f8]/30 rounded text-xs">Shift + Enter</kbd> для новой строки
+      <p className="text-xs text-[#023e8a]/50 mt-2">
+        <kbd className="px-1.5 py-0.5 bg-[#caf0f8]/30 rounded text-[#0077b6] font-mono">Enter</kbd> — отправить, 
+        <kbd className="px-1.5 py-0.5 bg-[#caf0f8]/30 rounded text-[#0077b6] font-mono ml-1">Shift+Enter</kbd> — новая строка
       </p>
-
-      {/* Модалка с шаблонами (только для операторов) */}
-      {isOperator && showTemplates && (
-        <TemplateSelector
-          onSelect={(template: Template) => {
-            setMessage(template.content);
-            setShowTemplates(false);
-            onTemplateSelect?.(template);
-            textareaRef.current?.focus();
-          }}
-          onClose={() => setShowTemplates(false)}
-        />
-      )}
     </div>
   );
 };

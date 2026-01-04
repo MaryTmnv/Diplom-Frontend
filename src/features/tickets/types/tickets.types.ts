@@ -1,5 +1,7 @@
+import { Article } from '@/features/knowledge-base/types/article.types';
 import type { Template } from '@/features/templates/types/template.types';
-import type { PaginatedResponse, DateRangeFilter } from '@/shared/types/api.types';
+import type { DateRangeFilter, PaginatedResponse } from '@/shared/types/api.types';
+import { UserRole } from '@/shared/types/user.types';
 
 // ========== ENUMS (UPPERCASE как на бэкенде) ==========
 
@@ -180,21 +182,6 @@ export interface TicketDetail extends Ticket {
   };
 }
 
-// Временный тип Article (создадим позже в knowledge-base)
-export interface Article {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  category: string;
-  readingTime: number;
-  views?: number;
-  helpfulCount?: number;
-  notHelpfulCount?: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 // ========== DTO ==========
 
 export interface CreateTicketDto {
@@ -289,3 +276,23 @@ export type TicketStatusColor = {
 export type TicketPriorityColor = {
   [key in TicketPriority]: string;
 };
+
+export interface UpdateTicketStatusDto {
+  status: TicketStatus;
+  comment?: string;
+}
+
+export interface UpdateTicketPriorityDto {
+  priority: TicketPriority;
+  reason?: string;
+}
+
+export interface EscalateDto {
+  reason: string;
+  targetRole?: UserRole;
+}
+
+export interface RatingDto {
+  rating: number; // 1-5
+  comment?: string;
+}

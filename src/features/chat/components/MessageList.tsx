@@ -1,76 +1,52 @@
 import { useEffect, useRef } from 'react';
-import { Message } from '../types/message.types';
 import { MessageItem } from './MessageItem';
-import { useAuthStore } from '@/features/auth/store/authStore';
-import { cn } from '@/shared/lib/utils/cn';
-import { Skeleton } from '@/shared/ui';
+import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
+import { EmptyState } from '@/shared/components/EmptyState';
+import type { Message } from '../types/message.types';
+import { formatDate } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 interface MessageListProps {
   messages: Message[];
+  currentUserId: string; // ← Добавили!
   isLoading?: boolean;
 }
 
-export const MessageList = ({ messages, isLoading }: MessageListProps) => {
+export const MessageList = ({ 
+  messages, 
+  currentUserId, // ← Добавили!
+  isLoading = false 
+}: MessageListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuthStore();
 
-  // Автоскролл к последнему сообщению
+  // Автоскролл к новым сообщениям
   useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-    // Проверяем, был ли пользователь внизу списка
-    const isScrolledToBottom = 
-      container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
-
-    if (isScrolledToBottom) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages.length]);
-
-  // Loading state
   if (isLoading) {
     return (
-      <div className="space-y-4 p-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className={cn('flex gap-3', i % 2 === 0 ? 'flex-row-reverse' : 'flex-row')}>
-            <Skeleton className="w-8 h-8 rounded-full" />
-            <div className="space-y-2 flex-1 max-w-[70%]">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-full" />
-            </div>
-          </div>
-        ))}
+      <div className="flex items-center justify-center h-full">
+        <LoadingSpinner text="Загрузка сообщений..." />
       </div>
     );
   }
 
-  // Empty state
-  if (!messages || messages.length === 0) {
+  if (messages.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-center p-8">
-        <div className="max-w-sm">
-          <div className="text-6xl mb-4">💬</div>
-          <p className="text-lg font-semibold text-gray-900 mb-2">
-            Начните переписку
-          </p>
-          <p className="text-sm text-gray-600">
-            Отправьте первое сообщение, и оператор скоро ответит
-          </p>
-        </div>
+      <div className="flex items-center justify-center h-full">
+        <EmptyState
+          icon="💬"
+          title="Нет сообщений"
+          description="Начните диалог с клиентом"
+        />
       </div>
     );
   }
 
-  // Группировка сообщений по дате
+  // Группировка сообщений по датам
   const groupedMessages = messages.reduce((groups, message) => {
-    const date = new Date(message.createdAt).toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-
+    const date = formatDate(new Date(message.createdAt), 'dd MMMM yyyy', { locale: ru });
     if (!groups[date]) {
       groups[date] = [];
     }
@@ -79,47 +55,37 @@ export const MessageList = ({ messages, isLoading }: MessageListProps) => {
   }, {} as Record<string, Message[]>);
 
   return (
-    <div ref={messagesContainerRef} className="h-full overflow-y-auto chat-scrollbar">
-      <div className="p-4 space-y-6">
-        {Object.entries(groupedMessages).map(([date, msgs]) => (
-          <div key={date}>
-            {/* Разделитель по дате */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-              <span className="text-xs font-semibold text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
-                {date}
-              </span>
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-            </div>
-
-            {/* Сообщения */}
-            <div className="space-y-1">
-              {msgs.map((message, index) => {
-                const isOwn = message.authorId === user?.id;
-                const prevMessage = msgs[index - 1];
-                const nextMessage = msgs[index + 1];
-                
-                // Проверяем, нужно ли показывать аватар
-                const showAvatar = !nextMessage || nextMessage.authorId !== message.authorId;
-                const isFirstInGroup = !prevMessage || prevMessage.authorId !== message.authorId;
-
-                return (
-                  <MessageItem
-                    key={message.id}
-                    message={message}
-                    isOwn={isOwn}
-                    showAvatar={showAvatar}
-                    isFirstInGroup={isFirstInGroup}
-                  />
-                );
-              })}
+    <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-[#caf0f8]/10 to-white">
+      {Object.entries(groupedMessages).map(([date, msgs]) => (
+        <div key={date}>
+          {/* Разделитель по дате */}
+          <div className="flex items-center justify-center my-6">
+            <div className="bg-[#90e0ef]/30 text-[#023e8a] text-xs font-medium px-4 py-1.5 rounded-full">
+              {date}
             </div>
           </div>
-        ))}
 
-        {/* Якорь для автоскролла */}
-        <div ref={messagesEndRef} />
-      </div>
+          {/* Сообщения */}
+          <div className="space-y-3">
+            {msgs.map((message, index) => {
+              const isOwn = message.authorId === currentUserId;
+              const showAvatar = index === 0 || msgs[index - 1].authorId !== message.authorId;
+
+              return (
+                <MessageItem
+                  key={message.id}
+                  message={message}
+                  isOwn={isOwn}
+                  showAvatar={showAvatar}
+                />
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {/* Якорь для автоскролла */}
+      <div ref={messagesEndRef} />
     </div>
   );
 };

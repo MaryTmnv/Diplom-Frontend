@@ -1,4 +1,4 @@
-import { UserType, UserRole } from '@/shared/types/user.types';
+import { UserType } from '@/shared/types/user.types';
 
 // ========== DTO (Data Transfer Objects) ==========
 

@@ -1,74 +1,91 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { AuthStore } from '../types/auth.types';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type { User } from '@/shared/types/user.types';
+
+interface AuthStore {
+  // Данные аутентификации
+  user: User | null;
+  accessToken: string | null;
+  isAuthenticated: boolean;
+  
+  // Флаг гидратации (для persist middleware)
+  _hasHydrated: boolean;
+  
+  // Действия
+  setUser: (user: User) => void;
+  setAccessToken: (token: string) => void;
+  setToken: (token: string) => void; // ← Алиас для setAccessToken
+  login: (user: User, accessToken: string) => void;
+  logout: () => void;
+  setHasHydrated: (state: boolean) => void;
+}
 
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
-      // State
+      // Начальное состояние
       user: null,
       accessToken: null,
       isAuthenticated: false,
-      isLoading: false,
+      _hasHydrated: false,
 
-      // Actions
-      setAuth: (data) => {
-        console.log('🔐 setAuth called:', { 
-          userId: data.user.id, 
-          role: data.user.role,
-          hasToken: !!data.accessToken 
-        });
-        
+      // Установить пользователя
+      setUser: (user) =>
         set({
-          user: data.user,
-          accessToken: data.accessToken,
+          user,
+          isAuthenticated: !!user,
+        }),
+
+      // Установить токен
+      setAccessToken: (accessToken) =>
+        set({
+          accessToken,
+        }),
+
+      // Алиас для setAccessToken (для обратной совместимости)
+      setToken: (accessToken) =>
+        set({
+          accessToken,
+        }),
+
+      // Вход (устанавливаем и пользователя, и токен)
+      login: (user, accessToken) => {
+        console.log('🔐 Login:', user.email);
+        set({
+          user,
+          accessToken,
           isAuthenticated: true,
-          isLoading: false,
         });
       },
 
-      setUser: (user) => {
-        console.log('👤 setUser called:', { userId: user.id, role: user.role });
-        set({ user, isAuthenticated: true });
-      },
-
-      setAccessToken: (token) => {
-        console.log('🔑 setAccessToken called');
-        set({ accessToken: token });
-      },
-
+      // Выход
       logout: () => {
-        console.log('🚪 logout called');
+        console.log('👋 Logout');
         set({
           user: null,
           accessToken: null,
           isAuthenticated: false,
-          isLoading: false,
-        });
-        
-        // Очищаем localStorage
-        localStorage.clear();
-        
-        // Очищаем cookies (если нужно)
-        document.cookie.split(";").forEach((c) => {
-          document.cookie = c
-            .replace(/^ +/, "")
-            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
         });
       },
 
-      clearAuth: () => {
-        console.log('🧹 clearAuth called');
+      // Установить флаг гидратации
+      setHasHydrated: (state) => {
         set({
-          user: null,
-          accessToken: null,
-          isAuthenticated: false,
-          isLoading: false,
+          _hasHydrated: state,
         });
       },
     }),
     {
       name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
+      
+      // Обработчик после гидратации
+      onRehydrateStorage: () => (state) => {
+        console.log('💧 Hydration finished');
+        state?.setHasHydrated(true);
+      },
+
+      // Частичная гидратация (не сохраняем _hasHydrated)
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
@@ -77,3 +94,8 @@ export const useAuthStore = create<AuthStore>()(
     }
   )
 );
+
+// Хук для проверки гидратации
+export const useHasHydrated = () => {
+  return useAuthStore((state) => state._hasHydrated);
+};

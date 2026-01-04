@@ -1,5 +1,5 @@
 import { api } from '@/shared/lib/api/apiClient';
-import { UserType } from '@/shared/types/user.types';
+import type { UserType } from '@/shared/types/user.types';
 
 export interface UpdateProfileDto {
   firstName?: string;
@@ -14,35 +14,49 @@ export interface ChangePasswordDto {
 }
 
 export const profileApi = {
-  // Обновить профиль
+  /**
+   * Обновить профиль пользователя
+   */
   updateProfile: async (userId: string, data: UpdateProfileDto): Promise<UserType> => {
-    return api.patch<UserType>(`/users/${userId}`, data);
+    const response = await api.patch<UserType>(`/users/${userId}`, data);
+    return response.data; // ← Возвращаем data, а не весь response!
   },
 
-  // Изменить пароль
+  /**
+   * Изменить пароль
+   */
   changePassword: async (userId: string, data: ChangePasswordDto): Promise<{ message: string }> => {
-    return api.post<{ message: string }>(`/users/${userId}/change-password`, data);
+    const response = await api.post<{ message: string }>(`/users/${userId}/change-password`, data);
+    return response.data; // ← Возвращаем data, а не весь response!
   },
 
-  // Загрузить аватар
+  /**
+   * Получить профиль текущего пользователя
+   */
+  getMe: async (): Promise<UserType> => {
+    const response = await api.get<UserType>('/users/me');
+    return response.data;
+  },
+
+  /**
+   * Загрузить аватар
+   */
   uploadAvatar: async (file: File): Promise<{ url: string }> => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('avatar', file);
 
-    const token = localStorage.getItem('auth_token');
-    
-    const response = await fetch('https://diplom-backend-0df6.onrender.com/api/files/upload', {
-      method: 'POST',
+    const response = await api.post<{ url: string }>('/users/avatar', formData, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
       },
-      body: formData,
     });
+    return response.data;
+  },
 
-    if (!response.ok) {
-      throw new Error('Upload failed');
-    }
-
-    return response.json();
+  /**
+   * Удалить аватар
+   */
+  deleteAvatar: async (): Promise<void> => {
+    await api.delete('/users/avatar');
   },
 };

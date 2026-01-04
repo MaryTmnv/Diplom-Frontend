@@ -1,4 +1,4 @@
-import { apiClient } from '@/shared/lib/api/apiClient';
+import { api } from '@/shared/lib/api/apiClient';
 import type { 
   Template, 
   TemplateFilters, 
@@ -24,7 +24,7 @@ export const templatesApi = {
     const query = params.toString();
     const url = `/templates${query ? `?${query}` : ''}`;
 
-    const response = await apiClient.get<TemplatesResponse>(url);
+    const response = await api.get<TemplatesResponse>(url);
     return response.data;
   },
 
@@ -32,7 +32,7 @@ export const templatesApi = {
    * Получить популярные шаблоны (без пагинации)
    */
   getPopularTemplates: async (limit: number = 5): Promise<Template[]> => {
-    const response = await apiClient.get<Template[]>(`/templates/popular?limit=${limit}`);
+    const response = await api.get<Template[]>(`/templates/popular?limit=${limit}`);
     return response.data;
   },
 
@@ -40,7 +40,7 @@ export const templatesApi = {
    * Получить шаблоны по категории
    */
   getTemplatesByCategory: async (category: string): Promise<Template[]> => {
-    const response = await apiClient.get<Template[]>(`/templates/category/${category}`);
+    const response = await api.get<Template[]>(`/templates/category/${category}`);
     return response.data;
   },
 
@@ -48,7 +48,7 @@ export const templatesApi = {
    * Получить шаблон по ID
    */
   getTemplateById: async (id: string): Promise<Template> => {
-    const response = await apiClient.get<Template>(`/templates/${id}`);
+    const response = await api.get<Template>(`/templates/${id}`);
     return response.data;
   },
 
@@ -56,7 +56,7 @@ export const templatesApi = {
    * Использовать шаблон с подстановкой переменных
    */
   useTemplate: async (id: string, data: UseTemplateDto): Promise<UseTemplateResponse> => {
-    const response = await apiClient.post<UseTemplateResponse>(`/templates/${id}/use`, data);
+    const response = await api.post<UseTemplateResponse>(`/templates/${id}/use`, data);
     return response.data;
   },
 
@@ -64,13 +64,13 @@ export const templatesApi = {
    * Увеличить счётчик использования (простой вариант)
    */
   incrementUsage: async (id: string): Promise<void> => {
-    await apiClient.post(`/templates/${id}/increment-usage`);
+    await api.post(`/templates/${id}/increment-usage`);
   },
 
   /**
    * Оценить шаблон
    */
   rateTemplate: async (id: string, rating: number): Promise<void> => {
-    await apiClient.post<void>(`/templates/${id}/rate`, { rating });
+    await api.post<void>(`/templates/${id}/rate`, { rating });
   },
 };
