@@ -105,10 +105,6 @@ export const TicketDetailPage = () => {
               <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center">
                 <MessageCircle className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <CardTitle className="text-lg font-bold text-white">Чат с поддержкой</CardTitle>
-                <p className="text-xs text-[#90e0ef]">Заявка {ticket.number}</p>
-              </div>
             </div>
           </div>
         </CardHeader>
