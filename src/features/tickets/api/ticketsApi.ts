@@ -42,7 +42,7 @@ export const ticketsApi = {
   },
 
   /**
-   * Получить активные заявки оператора
+   * Получить активные заявки оператора (возвращает массив)
    */
   getMyActiveTickets: async (): Promise<Ticket[]> => {
     const response = await apiClient.get<Ticket[]>('/tickets/my-active');
@@ -50,7 +50,7 @@ export const ticketsApi = {
   },
 
   /**
-   * Получить мои заявки (для клиента)
+   * Получить мои заявки (для клиента) с пагинацией
    */
   getMyTickets: async (filters?: TicketFilters): Promise<PaginatedResponse<Ticket>> => {
     const params = new URLSearchParams();
@@ -62,7 +62,8 @@ export const ticketsApi = {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
-    const url = `/tickets/my-active`;
+    const query = params.toString();
+    const url = `/tickets${query ? `?${query}` : ''}`;
 
     const response = await apiClient.get<PaginatedResponse<Ticket>>(url);
     return response.data;
@@ -104,12 +105,12 @@ export const ticketsApi = {
    * Взять заявку в работу
    */
   assignTicket: async (id: string, operatorId?: string): Promise<Ticket> => {
-  const response = await apiClient.post<Ticket>(
-    `/tickets/${id}/assign`,
-    operatorId ? { operatorId } : undefined
-  );
-  return response.data;
-},
+    const response = await apiClient.post<Ticket>(
+      `/tickets/${id}/assign`,
+      operatorId ? { operatorId } : undefined
+    );
+    return response.data;
+  },
 
   /**
    * Эскалировать заявку

@@ -13,25 +13,27 @@ export const DashboardPage = () => {
   // Загружаем все заявки
   const { data: ticketsResponse, isLoading } = useTickets();
 
-  // Вычисляем статистику
-  const stats = useMemo(() => {
-    const tickets = ticketsResponse?.data || [];
-    
-    return {
-      active: tickets.filter(
-        (t) => t.status === TicketStatus.NEW || t.status === TicketStatus.IN_PROGRESS
-      ).length,
-      resolved: tickets.filter((t) => t.status === TicketStatus.RESOLVED).length,
-      total: tickets.length,
-    };
-  }, [ticketsResponse]);
+// Вычисляем статистику
+const stats = useMemo(() => {
+  const tickets = ticketsResponse?.data || [];
 
-  // Активные заявки
-  const activeTickets = useMemo(() => {
-    return ticketsResponse?.data.filter(
-      (t) => t.status !== TicketStatus.CLOSED && t.status !== TicketStatus.RESOLVED
-    ) || [];
-  }, [ticketsResponse]);
+  return {
+    active: tickets.filter(
+      (t) => t.status === TicketStatus.NEW || t.status === TicketStatus.IN_PROGRESS
+    ).length,
+    resolved: tickets.filter((t) => t.status === TicketStatus.RESOLVED).length,
+    total: tickets.length,
+  };
+}, [ticketsResponse]);
+
+// Активные заявки
+const activeTickets = useMemo(() => {
+  return ticketsResponse?.data.filter(
+    (t) => t.status !== TicketStatus.CLOSED && t.status !== TicketStatus.RESOLVED
+  ) || [];
+}, [ticketsResponse]);
+
+
 
   return (
    <div className="space-y-8">
