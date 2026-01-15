@@ -14,6 +14,7 @@ interface ChatWindowProps {
   ticketNumber?: string; 
   ticketCategory?: TicketCategory; 
   className?: string; 
+  title?: string
 }
 
 export const ChatWindow = ({ 
@@ -22,6 +23,7 @@ export const ChatWindow = ({
   ticketNumber,
   ticketCategory,
   className,
+  title = 'Чат с клиентом'
 }: ChatWindowProps) => {
   const { 
     messages, 
@@ -67,7 +69,7 @@ export const ChatWindow = ({
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <h3 className="font-bold text-lg">Чат с клиентом</h3>
+              <h3 className="font-bold text-lg">{title}</h3>
               
               {/* Номер заявки */}
               {ticketNumber && (

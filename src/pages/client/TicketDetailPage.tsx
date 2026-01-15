@@ -118,6 +118,7 @@ export const TicketDetailPage = () => {
           ticketNumber={ticket.number}
           ticketCategory={ticket.category}
           className="h-[calc(100%-4rem)]"
+          title='Чат с поддержкой'
         />
       </Card>
     </div>
