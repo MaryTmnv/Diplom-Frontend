@@ -99,15 +99,6 @@ export const TicketDetailPage = () => {
 
       {/* ЧАТ */}
       <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-b from-white to-[#caf0f8]/5">
-        <CardHeader className="pb-3 border-b border-[#90e0ef]/30 bg-gradient-to-r from-[#03045e] to-[#023e8a]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-white" />
-              </div>
-            </div>
-          </div>
-        </CardHeader>
         <ChatWindow 
           ticketId={ticket.id} 
           currentUserId={currentUserId || ''} 
