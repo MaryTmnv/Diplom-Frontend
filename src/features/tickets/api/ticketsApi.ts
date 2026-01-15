@@ -20,6 +20,7 @@ export const ticketsApi = {
     console.log('🌐 ticketsApi.getQueue: Called with filters:', filters);
     
     const params = new URLSearchParams();
+    
 
     if (filters?.search) params.append('search', filters.search);
     if (filters?.page) params.append('page', String(filters.page));
@@ -31,17 +32,33 @@ export const ticketsApi = {
     console.log('🌐 ticketsApi.getQueue: Making request to:', url);
 
     try {
-      const response = await apiClient.get<PaginatedResponse<Ticket>>(url);
+      const response = await apiClient.get<Ticket[]>(url); // ← Изменили тип!
       
       console.log('✅ ticketsApi.getQueue: Response received:', {
         status: response.status,
         data: response.data,
         dataType: typeof response.data,
-        hasData: !!response.data?.data,
-        dataLength: response.data?.data?.length,
+        isArray: Array.isArray(response.data),
+        dataLength: response.data?.length,
       });
 
-      return response.data;
+      // ✅ Оборачиваем массив в PaginatedResponse
+      const paginatedResponse: PaginatedResponse<Ticket> = {
+        data: response.data,
+        meta: {
+          total: response.data.length,
+          page: filters?.page || 1,
+          limit: filters?.limit || 20,
+          totalPages: 1,
+          hasNext: false,  // добавьте реальные значения
+           hasPrev: false,  // добавьте реальные значения
+
+        },
+      };
+
+      console.log('✅ Wrapped response:', paginatedResponse);
+
+      return paginatedResponse;
     } catch (error) {
       console.error('❌ ticketsApi.getQueue: Request failed:', error);
       throw error;
