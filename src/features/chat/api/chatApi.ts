@@ -7,7 +7,7 @@ export const chatApi = {
    */
   getMessages: async (ticketId: string): Promise<Message[]> => {
     const response = await apiClient.get<Message[]>(`/tickets/${ticketId}/messages`);
-    return response.data; // ← Важно!
+    return response.data;
   },
 
   /**
@@ -15,23 +15,34 @@ export const chatApi = {
    */
   sendMessage: async (ticketId: string, data: SendMessageDto): Promise<Message> => {
     const response = await apiClient.post<Message>(`/tickets/${ticketId}/messages`, data);
-    return response.data; // ← Важно!
+    return response.data;
   },
 
   /**
    * Отметить сообщение как прочитанное
    */
-  markAsRead: async (ticketId: string, messageId: string): Promise<void> => {
-    await apiClient.patch(`/tickets/${ticketId}/messages/${messageId}/read`);
-    // Для void не нужно возвращать response.data
+  markAsRead: async (ticketId: string, messageId: string): Promise<Message> => {
+    const response = await apiClient.patch<Message>(`/tickets/${ticketId}/messages/${messageId}/read`);
+    return response.data; // ✅ Backend возвращает обновлённое сообщение
+  },
+
+  /**
+   * Отметить несколько сообщений как прочитанные
+   */
+  markMultipleAsRead: async (ticketId: string, messageIds: string[]): Promise<{ updated: number }> => {
+    const response = await apiClient.post<{ updated: number }>(
+      `/tickets/${ticketId}/messages/mark-read`,
+      { messageIds }
+    );
+    return response.data;
   },
 
   /**
    * Количество непрочитанных сообщений
    */
-  getUnreadCount: async (ticketId: string): Promise<{ count: number }> => {
-    const response = await apiClient.get<{ count: number }>(`/tickets/${ticketId}/messages/unread-count`);
-    return response.data; // ← Важно!
+  getUnreadCount: async (ticketId: string): Promise<number> => {
+    const response = await apiClient.get<number>(`/tickets/${ticketId}/messages/unread-count`);
+    return response.data; // ✅ Backend возвращает просто число
   },
 
   /**
@@ -42,7 +53,7 @@ export const chatApi = {
     formData.append('file', file);
 
     const response = await apiClient.post<{ id: string; url: string }>(
-      '/attachments/upload',
+      '/files/upload', // ✅ Исправлен путь
       formData,
       {
         headers: {
