@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { chatApi } from '../api/chatApi';
 import { queryKeys } from '@/shared/lib/api/queryClient';
 import type { Message, SendMessageDto } from '../types/message.types';
+import { useAuthStore } from '@/features/auth/store/authStore';
 import toast from 'react-hot-toast';
 import { useWebSocket } from './ useWebSocket';
 
@@ -10,6 +11,7 @@ export const useChat = (ticketId: string) => {
   const queryClient = useQueryClient();
   const { socket, isConnected } = useWebSocket(ticketId);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const currentUser = useAuthStore((state) => state.user);
 
   // Получение сообщений
   const { data: messages, isLoading, error } = useQuery({
@@ -17,7 +19,7 @@ export const useChat = (ticketId: string) => {
     queryFn: () => chatApi.getMessages(ticketId),
     enabled: !!ticketId,
     refetchOnWindowFocus: false,
-    staleTime: 30000, // 30 секунд
+    staleTime: 30000,
   });
 
   // Отправка сообщения
@@ -27,54 +29,49 @@ export const useChat = (ticketId: string) => {
 
       // Если WebSocket подключен, отправляем через него
       if (socket && isConnected) {
-        return new Promise<Message>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('Message send timeout'));
-          }, 5000);
+        // Создаём временное сообщение для оптимистичного обновления
+        const tempMessage: Message = {
+          id: `temp-${Date.now()}`,
+          ticketId,
+          content: data.content,
+          authorId: currentUser?.id || '',
+          author: currentUser || {} as any,
+          attachments: [],
+          isInternal: data.isInternal || false,
+          createdAt: new Date().toISOString(),
+          readAt: null,
+        };
 
-          // Отправляем сообщение
-          socket.emit('send-message', {
-            ticketId,
-            ...data,
-          });
+        // Оптимистично добавляем сообщение
+        queryClient.setQueryData<Message[]>(
+          queryKeys.chat.messages(ticketId),
+          (old = []) => [...old, tempMessage]
+        );
 
-          // Ждём подтверждения
-          socket.once('message-sent', (message: Message) => {
-            clearTimeout(timeout);
-            console.log('✅ Message sent via WebSocket:', message);
-            resolve(message);
-          });
-
-          socket.once('message-error', (error: any) => {
-            clearTimeout(timeout);
-            console.error('❌ Message send error:', error);
-            reject(error);
-          });
+        // Отправляем через WebSocket (без ожидания ответа)
+        socket.emit('send-message', {
+          ticketId,
+          content: data.content,
+          attachmentIds: data.attachmentIds,
+          isInternal: data.isInternal,
         });
+
+        console.log('✅ Message sent via WebSocket (optimistic)');
+        return tempMessage;
       }
       
       // Fallback на REST API
       console.log('📡 Sending message via REST API');
       return chatApi.sendMessage(ticketId, data);
     },
-    onSuccess: (newMessage) => {
-      console.log('✅ Message sent successfully:', newMessage);
-      
-      // Добавляем сообщение в кеш
-      queryClient.setQueryData<Message[]>(
-        queryKeys.chat.messages(ticketId),
-        (old = []) => {
-          // Проверяем, нет ли уже этого сообщения
-          if (old.some((m) => m.id === newMessage.id)) {
-            return old;
-          }
-          return [...old, newMessage];
-        }
-      );
-    },
     onError: (error: any) => {
       console.error('❌ Failed to send message:', error);
       toast.error('Не удалось отправить сообщение');
+      
+      // Откатываем оптимистичное обновление
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.chat.messages(ticketId) 
+      });
     },
   });
 
@@ -87,24 +84,25 @@ export const useChat = (ticketId: string) => {
 
     console.log('🎧 Setting up WebSocket listeners for ticket:', ticketId);
 
-    // Новое сообщение
+    // Новое сообщение от сервера
     const handleNewMessage = (message: Message) => {
       console.log('📨 New message received:', message);
       
       queryClient.setQueryData<Message[]>(
         queryKeys.chat.messages(ticketId),
         (old = []) => {
+          // Удаляем временное сообщение если есть
+          const withoutTemp = old.filter((m) => !m.id.startsWith('temp-'));
+          
           // Проверяем, нет ли уже этого сообщения
-          if (old.some((m) => m.id === message.id)) {
+          if (withoutTemp.some((m) => m.id === message.id)) {
             console.log('⚠️ Message already exists, skipping');
             return old;
           }
-          return [...old, message];
+          
+          return [...withoutTemp, message];
         }
       );
-
-      // Показываем уведомление (опционально)
-      // toast.success('Новое сообщение');
     };
 
     // Пользователь печатает
@@ -137,10 +135,22 @@ export const useChat = (ticketId: string) => {
       );
     };
 
+    // Ошибка отправки сообщения
+    const handleMessageError = (error: any) => {
+      console.error('❌ Message error from server:', error);
+      toast.error(error.message || 'Ошибка отправки сообщения');
+      
+      // Перезагружаем сообщения
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.chat.messages(ticketId) 
+      });
+    };
+
     // Подписываемся на события
     socket.on('new-message', handleNewMessage);
     socket.on('user-typing', handleUserTyping);
     socket.on('message-read', handleMessageRead);
+    socket.on('message-error', handleMessageError);
 
     // Отписываемся при размонтировании
     return () => {
@@ -148,8 +158,9 @@ export const useChat = (ticketId: string) => {
       socket.off('new-message', handleNewMessage);
       socket.off('user-typing', handleUserTyping);
       socket.off('message-read', handleMessageRead);
+      socket.off('message-error', handleMessageError);
     };
-  }, [socket, isConnected, ticketId, queryClient]);
+  }, [socket, isConnected, ticketId, queryClient, currentUser]);
 
   // Отправка события "печатает"
   const emitTyping = useCallback(() => {
