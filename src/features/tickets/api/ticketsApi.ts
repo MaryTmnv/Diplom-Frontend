@@ -17,28 +17,35 @@ export const ticketsApi = {
    * Получить очередь заявок (для операторов)
    */
   getQueue: async (filters?: TicketFilters): Promise<PaginatedResponse<Ticket>> => {
+    console.log('🌐 ticketsApi.getQueue: Called with filters:', filters);
+    
     const params = new URLSearchParams();
 
-    if (filters?.status) {
-      filters.status.forEach((s) => params.append('status', s));
-    }
-    if (filters?.priority) {
-      filters.priority.forEach((p) => params.append('priority', p));
-    }
-    if (filters?.category) {
-      filters.category.forEach((c) => params.append('category', c));
-    }
     if (filters?.search) params.append('search', filters.search);
-    if (filters?.dateFrom) params.append('dateFrom', filters.dateFrom);
-    if (filters?.dateTo) params.append('dateTo', filters.dateTo);
-    if (filters?.page) params.append('page', filters.page.toString());
-    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.page) params.append('page', String(filters.page));
+    if (filters?.limit) params.append('limit', String(filters.limit));
 
     const query = params.toString();
     const url = `/tickets/queue${query ? `?${query}` : ''}`;
 
-    const response = await apiClient.get<PaginatedResponse<Ticket>>(url);
-    return response.data;
+    console.log('🌐 ticketsApi.getQueue: Making request to:', url);
+
+    try {
+      const response = await apiClient.get<PaginatedResponse<Ticket>>(url);
+      
+      console.log('✅ ticketsApi.getQueue: Response received:', {
+        status: response.status,
+        data: response.data,
+        dataType: typeof response.data,
+        hasData: !!response.data?.data,
+        dataLength: response.data?.data?.length,
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ ticketsApi.getQueue: Request failed:', error);
+      throw error;
+    }
   },
 
   /**
