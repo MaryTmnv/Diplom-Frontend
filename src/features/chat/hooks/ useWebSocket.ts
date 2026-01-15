@@ -2,13 +2,13 @@ import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '@/features/auth/store/authStore';
 
-const WEBSOCKET_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3000';
+// Убираем /api из URL для WebSocket
+const WEBSOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace('/api', '');
 
 export const useWebSocket = (ticketId: string) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const accessToken = useAuthStore((state) => state.accessToken);
   const socketRef = useRef<Socket | null>(null);
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   useEffect(() => {
     if (!accessToken || !ticketId) {
@@ -16,10 +16,11 @@ export const useWebSocket = (ticketId: string) => {
       return;
     }
 
-    console.log('🔌 WebSocket: Connecting to', WEBSOCKET_URL);
+    // Подключаемся к namespace /chat
+    const socketUrl = `${WEBSOCKET_URL}/chat`;
+    console.log('🔌 WebSocket: Connecting to', socketUrl);
 
-    // Создаем подключение
-    const newSocket = io(WEBSOCKET_URL, {
+    const newSocket = io(socketUrl, {
       auth: {
         token: accessToken,
       },
@@ -33,12 +34,20 @@ export const useWebSocket = (ticketId: string) => {
 
     // События подключения
     newSocket.on('connect', () => {
-      console.log('✅ WebSocket: Connected');
+      console.log('✅ WebSocket: Connected', newSocket.id);
       setIsConnected(true);
 
-      // Присоединяемся к комнате заявки
-      newSocket.emit('join-ticket', ticketId);
-      console.log(`📥 WebSocket: Joined ticket room ${ticketId}`);
+      // Присоединяемся к комнате заявки (правильный формат!)
+      newSocket.emit('join-ticket', { ticketId });
+      console.log(`📥 WebSocket: Joining ticket room ${ticketId}`);
+    });
+
+    newSocket.on('connected', (data) => {
+      console.log('✅ WebSocket: Server confirmed connection', data);
+    });
+
+    newSocket.on('joined-ticket', (data) => {
+      console.log('✅ WebSocket: Joined ticket room', data);
     });
 
     newSocket.on('disconnect', (reason) => {
@@ -55,17 +64,19 @@ export const useWebSocket = (ticketId: string) => {
       console.log(`🔄 WebSocket: Reconnected after ${attemptNumber} attempts`);
       setIsConnected(true);
       
-      // Повторно присоединяемся к комнате
-      newSocket.emit('join-ticket', ticketId);
+      // Повторно присоединяемся к комнате (правильный формат!)
+      newSocket.emit('join-ticket', { ticketId });
     });
 
-    setSocket(newSocket);
+    newSocket.on('error', (error) => {
+      console.error('🔴 WebSocket: Error', error);
+    });
 
     // Cleanup
     return () => {
       console.log('🔌 WebSocket: Disconnecting...');
       if (socketRef.current) {
-        socketRef.current.emit('leave-ticket', ticketId);
+        socketRef.current.emit('leave-ticket', { ticketId });
         socketRef.current.disconnect();
         socketRef.current = null;
       }
@@ -73,7 +84,7 @@ export const useWebSocket = (ticketId: string) => {
   }, [accessToken, ticketId]);
 
   return {
-    socket,
+    socket: socketRef.current,
     isConnected,
   };
 };
